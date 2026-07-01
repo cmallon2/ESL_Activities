@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chalk & Guess — ESL Hangman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+  /* =========================================================
+     DESIGN TOKENS
+     Theme: a real chalkboard. Deep board green, chalk-white
+     strokes, dusty chalk accents. Signature element: the
+     hangman + letters are "drawn" with a hand-lettered font
+     and a chalky stroke-reveal animation.
+     ========================================================= */
+  :root {
+    --board: #2b3a32;
+    --board-dark: #1f2b25;
+    --board-line: rgba(242, 239, 230, 0.10);
+    --chalk: #f2efe6;
+    --chalk-dim: rgba(242, 239, 230, 0.55);
+    --chalk-yellow: #e8b23d;
+    --chalk-green: #8fbf7f;
+    --chalk-green-dark: #4f6e46;
+    --chalk-coral: #c1665a;
+    --tray: #7a5a3f;
+    --tray-dark: #5e4530;
+    --radius: 10px;
+    --font-display: 'Kalam', cursive;
+    --font-body: 'Nunito', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: var(--board);
+    background-image:
+      radial-gradient(ellipse at top left, rgba(255,255,255,0.03), transparent 60%),
+      radial-gradient(ellipse at bottom right, rgba(255,255,255,0.02), transparent 60%);
+    color: var(--chalk);
+    font-family: var(--font-body);
+  }
+
+  #app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .site-title {
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 4px;
+    color: var(--chalk);
+  }
+  .site-title span { color: var(--chalk-yellow); }
+
+  .subtitle {
+    font-family: var(--font-body);
+    color: var(--chalk-dim);
+    font-size: 0.95rem;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .chalk-underline {
+    width: 140px;
+    height: 6px;
+    margin: 0 auto 30px;
+    opacity: 0.7;
+  }
+
+  /* Generic panel = a "slate" resting on the board */
+  .panel {
+    background: var(--board-dark);
+    border: 1px solid var(--board-line);
+    border-radius: var(--radius);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03);
+    padding: 28px;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  .screen { display: none; width: 100%; max-width: 640px; }
+  .screen.active { display: block; }
+
+  /* Buttons */
+  button {
+    font-family: var(--font-body);
+    cursor: pointer;
+    border: none;
+    outline-offset: 3px;
+  }
+  button:focus-visible { outline: 2px solid var(--chalk-yellow); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    transition: transform 0.12s ease, filter 0.12s ease;
+    color: var(--board-dark);
+    background: var(--chalk-yellow);
+  }
+  .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn.secondary {
+    background: transparent;
+    color: var(--chalk);
+    border: 2px solid var(--board-line);
+  }
+  .btn.secondary:hover { border-color: var(--chalk-yellow); }
+  .btn.wide { width: 100%; }
+  .btn.small { padding: 8px 14px; font-size: 0.82rem; }
+
+  /* ---------- START SCREEN ---------- */
+  .mode-choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 8px;
+  }
+  @media (max-width: 520px) {
+    .mode-choices { grid-template-columns: 1fr; }
+  }
+  .mode-card {
+    background: var(--board);
+    border: 1px solid var(--board-line);
+    border-radius: var(--radius);
+    padding: 22px 18px;
+    text-align: left;
+    color: var(--chalk);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .mode-card:hover { border-color: var(--chalk-yellow); transform: translateY(-2px); }
+  .mode-card .mode-icon { font-size: 1.6rem; margin-bottom: 8px; display: block; }
+  .mode-card h3 { font-size: 1.3rem; margin-bottom: 6px; }
+  .mode-card p { margin: 0; font-size: 0.85rem; color: var(--chalk-dim); line-height: 1.4; }
+
+  /* ---------- SETUP SCREENS ---------- */
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--chalk-dim);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  select, input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 2px solid var(--board-line);
+    background: var(--board);
+    color: var(--chalk);
+    font-family: var(--font-body);
+    font-size: 1rem;
+  }
+  select:focus, input:focus { border-color: var(--chalk-yellow); outline: none; }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 480px) { .category-grid { grid-template-columns: 1fr; } }
+  .cat-btn {
+    background: var(--board);
+    border: 2px solid var(--board-line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: left;
+    color: var(--chalk);
+  }
+  .cat-btn .cat-name { font-weight: 800; display: block; font-size: 0.95rem; }
+  .cat-btn .cat-level { font-size: 0.72rem; color: var(--chalk-yellow); text-transform: uppercase; letter-spacing: 0.05em; }
+  .cat-btn:hover, .cat-btn.selected { border-color: var(--chalk-yellow); }
+
+  .diff-row { display: flex; gap: 10px; }
+  .diff-row select { flex: 1; }
+
+  .hint-note {
+    font-size: 0.8rem;
+    color: var(--chalk-dim);
+    background: rgba(232,178,61,0.08);
+    border: 1px dashed rgba(232,178,61,0.35);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 4px;
+  }
+
+  .back-link {
+    background: none;
+    border: none;
+    color: var(--chalk-dim);
+    font-size: 0.85rem;
+    padding: 6px 0;
+    margin-bottom: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .back-link:hover { color: var(--chalk-yellow); }
+
+  /* ---------- GAME SCREEN ---------- */
+  .game-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    color: var(--chalk-dim);
+  }
+  .score-pill {
+    background: var(--board);
+    border: 1px solid var(--board-line);
+    border-radius: 20px;
+    padding: 5px 14px;
+    display: flex;
+    gap: 12px;
+  }
+  .score-pill b { color: var(--chalk); }
+
+  .hangman-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0 14px;
+  }
+
+  .category-tag {
+    text-align: center;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--chalk-yellow);
+    margin-bottom: 6px;
+  }
+
+  .word-display {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 6px;
+  }
+  .letter-slot {
+    width: 34px;
+    height: 42px;
+    border-bottom: 3px solid var(--chalk-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--chalk);
+  }
+  .letter-slot.space { border-bottom: none; width: 18px; }
+  .letter-slot.revealed { border-color: var(--chalk-green); color: var(--chalk-green); }
+
+  .hint-area {
+    text-align: center;
+    min-height: 22px;
+    font-size: 0.85rem;
+    color: var(--chalk-dim);
+    font-style: italic;
+    margin-bottom: 10px;
+  }
+
+  .controls-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 6px 0 18px;
+    flex-wrap: wrap;
+  }
+
+  /* On-screen keyboard */
+  .keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  .kb-row { display: flex; gap: 6px; }
+  .key {
+    width: 38px;
+    height: 44px;
+    border-radius: 6px;
+    background: var(--board);
+    border: 1px solid var(--board-line);
+    color: var(--chalk);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    transition: opacity 0.35s ease, background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  }
+  .key:hover:not(:disabled) { border-color: var(--chalk-yellow); transform: translateY(-1px); }
+  .key:disabled { cursor: default; }
+  .key.correct {
+    background: var(--chalk-green);
+    color: var(--board-dark);
+    border-color: var(--chalk-green);
+    box-shadow: 0 0 12px rgba(143,191,127,0.5);
+  }
+  .key.wrong {
+    opacity: 0.28;
+    text-decoration: line-through;
+    background: transparent;
+  }
+  @media (max-width: 480px) {
+    .key { width: 28px; height: 38px; font-size: 0.9rem; }
+  }
+
+  /* Teacher peek button — deliberately tucked away, revealed only on demand */
+  .teacher-peek {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 50;
+  }
+  .peek-btn {
+    background: var(--board-dark);
+    border: 1px solid var(--board-line);
+    color: var(--chalk-dim);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .peek-btn:hover { color: var(--chalk-yellow); border-color: var(--chalk-yellow); }
+  .peek-popover {
+    position: absolute;
+    top: 44px;
+    right: 0;
+    background: var(--chalk);
+    color: var(--board-dark);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    display: none;
+  }
+  .peek-popover.show { display: block; }
+
+  /* Result overlay */
+  .result-banner {
+    text-align: center;
+    padding: 14px;
+    border-radius: 8px;
+    margin: 14px 0;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    display: none;
+  }
+  .result-banner.won { display: block; background: rgba(143,191,127,0.15); color: var(--chalk-green); border: 1px solid var(--chalk-green); }
+  .result-banner.lost { display: block; background: rgba(193,102,90,0.15); color: var(--chalk-coral); border: 1px solid var(--chalk-coral); }
+  .reveal-answer { font-family: var(--font-body); font-size: 0.85rem; color: var(--chalk-dim); margin-top: 4px; }
+
+  .footer-note {
+    margin-top: 30px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(242,239,230,0.35);
+  }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <h1 class="site-title">Chalk &amp; <span>Guess</span></h1>
+  <p class="subtitle">A hangman game for the ESL classroom</p>
+  <svg class="chalk-underline" viewBox="0 0 140 6"><path d="M2 3 Q35 0 70 3 T138 3" stroke="#e8b23d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+
+  <!-- teacher peek control, only present during an active teacher-mode game -->
+  <div class="teacher-peek" id="teacherPeek" style="display:none;">
+    <button class="peek-btn" id="peekBtn" aria-describedby="peekPop">
+      👁 Teacher peek
+    </button>
+    <div class="peek-popover" id="peekPop"></div>
+  </div>
+
+  <!-- ============ START SCREEN ============ -->
+  <div class="screen active" id="screen-start">
+    <div class="panel">
+      <h2 style="font-size:1.4rem; margin-bottom:4px;">Choose a mode</h2>
+      <p style="color:var(--chalk-dim); font-size:0.88rem; margin:0 0 18px;">Pick a curated vocabulary set, or let anyone set up a one-off word.</p>
+      <div class="mode-choices">
+        <button class="mode-card" onclick="goTo('screen-teacher-setup')">
+          <span class="mode-icon">🧑‍🏫</span>
+          <h3>Teacher Mode</h3>
+          <p>Choose a themed word bank by level. Includes hints and a private answer peek.</p>
+        </button>
+        <button class="mode-card" onclick="goTo('screen-freeplay-setup')">
+          <span class="mode-icon">✏️</span>
+          <h3>Freeplay</h3>
+          <p>Anyone types in a secret word for a one-off round — great for pair or team play.</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TEACHER SETUP ============ -->
+  <div class="screen" id="screen-teacher-setup">
+    <div class="panel">
+      <button class="back-link" onclick="goTo('screen-start')">← Back</button>
+      <h2 style="font-size:1.3rem; margin-bottom:14px;">Teacher Mode setup</h2>
+
+      <div class="field">
+        <label>Word bank</label>
+        <div class="category-grid" id="categoryGrid"></div>
+      </div>
+
+      <div class="field">
+        <label>Difficulty (max wrong guesses)</label>
+        <div class="diff-row">
+          <select id="teacherDifficulty">
+            <option value="6">Standard — 6 guesses</option>
+            <option value="8">Easier — 8 guesses</option>
+            <option value="10">Very supportive — 10 guesses</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="hint-note">A random word from the chosen bank will be selected. You'll get a private "Teacher peek" button during the game — click it discreetly to check the answer without showing the class.</p>
+
+      <button class="btn wide" style="margin-top:16px;" onclick="startTeacherGame()">Start game</button>
+    </div>
+  </div>
+
+  <!-- ============ FREEPLAY SETUP ============ -->
+  <div class="screen" id="screen-freeplay-setup">
+    <div class="panel">
+      <button class="back-link" onclick="goTo('screen-start')">← Back</button>
+      <h2 style="font-size:1.3rem; margin-bottom:6px;">Freeplay setup</h2>
+      <p style="color:var(--chalk-dim); font-size:0.85rem; margin:0 0 18px;">Whoever is setting the word should type now — look away, guessers!</p>
+
+      <div class="field">
+        <label for="freeplayWord">Secret word or short phrase</label>
+        <input type="password" id="freeplayWord" placeholder="Type the word here" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="freeplayHint">Optional hint (shown to guessers)</label>
+        <input type="text" id="freeplayHint" placeholder="e.g. a type of fruit">
+      </div>
+
+      <div class="field">
+        <label>Difficulty (max wrong guesses)</label>
+        <select id="freeplayDifficulty">
+          <option value="6">Standard — 6 guesses</option>
+          <option value="8">Easier — 8 guesses</option>
+          <option value="10">Very supportive — 10 guesses</option>
+        </select>
+      </div>
+
+      <p class="hint-note" id="freeplayError" style="display:none; border-color: var(--chalk-coral); color: var(--chalk-coral);"></p>
+
+      <button class="btn wide" style="margin-top:8px;" onclick="startFreeplayGame()">Start game</button>
+    </div>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div class="screen" id="screen-game">
+    <div class="panel">
+      <div class="game-topbar">
+        <button class="back-link" style="margin:0;" onclick="confirmQuit()">← End round</button>
+        <div class="score-pill">
+          <span>✅ <b id="scoreWins">0</b></span>
+          <span>❌ <b id="scoreLosses">0</b></span>
+        </div>
+      </div>
+
+      <div class="category-tag" id="categoryTag"></div>
+
+      <div class="hangman-wrap">
+        <svg id="hangmanSvg" width="180" height="200" viewBox="0 0 180 200">
+          <!-- gallows, always visible -->
+          <line x1="15" y1="190" x2="115" y2="190" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
+          <line x1="40" y1="190" x2="40" y2="20" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
+          <line x1="40" y1="20" x2="120" y2="20" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
+          <line x1="120" y1="20" x2="120" y2="42" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
+          <!-- body parts, revealed progressively -->
+          <circle id="hm-head" cx="120" cy="58" r="16" stroke="#e8b23d" stroke-width="4.5" fill="none" stroke-dasharray="101" stroke-dashoffset="101"/>
+          <line id="hm-torso" x1="120" y1="74" x2="120" y2="122" stroke="#e8b23d" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="48" stroke-dashoffset="48"/>
+          <line id="hm-arm-l" x1="120" y1="85" x2="100" y2="105" stroke="#e8b23d" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="29" stroke-dashoffset="29"/>
+          <line id="hm-arm-r" x1="120" y1="85" x2="140" y2="105" stroke="#e8b23d" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="29" stroke-dashoffset="29"/>
+          <line id="hm-leg-l" x1="120" y1="122" x2="102" y2="150" stroke="#c1665a" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="35" stroke-dashoffset="35"/>
+          <line id="hm-leg-r" x1="120" y1="122" x2="138" y2="150" stroke="#c1665a" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="35" stroke-dashoffset="35"/>
+        </svg>
+      </div>
+
+      <div class="word-display" id="wordDisplay"></div>
+      <div class="hint-area" id="hintArea"></div>
+
+      <div class="controls-row">
+        <button class="btn secondary small" id="hintBtn" onclick="revealHint()">💡 Show hint</button>
+      </div>
+
+      <div class="result-banner" id="resultBanner"></div>
+
+      <div class="keyboard" id="keyboard" role="group" aria-label="Letter keyboard"></div>
+
+      <div class="controls-row" id="postGameControls" style="display:none; margin-top:20px;">
+        <button class="btn" onclick="playAgainSameMode()">Play again</button>
+        <button class="btn secondary" onclick="goTo('screen-start')">Main menu</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="footer-note">Built for ESL classrooms · edit the <code>WORD_BANKS</code> object in the source to add your own units</p>
+</div>
+
+<script>
+/* =========================================================
+   WORD BANKS
+   Add or edit categories/words here. Each word may include
+   an optional short "hint" (a definition or example sentence)
+   which the class can reveal with the hint button.
+   Difficulty labels are shown to the teacher only.
+   ========================================================= */
+const WORD_BANKS = {
+  jobSearch: {
+    label: "Job Search",
+    level: "A2–B1",
+    words: [
+      { word: "resume", hint: "A document listing your work history and skills." },
+      { word: "vacancy", hint: "A job that is open and available to apply for." },
+      { word: "apply", hint: "To formally ask for a job, often by sending a form." },
+      { word: "qualification", hint: "A skill or achievement that makes you suitable for a job." },
+      { word: "networking", hint: "Meeting people who might help your career." },
+      { word: "cover letter", hint: "A letter that introduces you when you apply for a job." },
+      { word: "reference", hint: "A person who can describe your work to an employer." },
+      { word: "candidate", hint: "A person applying for a job." }
+    ]
+  },
+  interview: {
+    label: "Interview Language",
+    level: "B1",
+    words: [
+      { word: "punctual", hint: "Arriving on time, not late." },
+      { word: "strengths", hint: "The things you are good at." },
+      { word: "weaknesses", hint: "The things you need to improve." },
+      { word: "confident", hint: "Feeling sure of yourself." },
+      { word: "experience", hint: "Work you have done before." },
+      { word: "follow up", hint: "To contact someone again after a meeting." },
+      { word: "shortlisted", hint: "Chosen as one of the final candidates." },
+      { word: "handshake", hint: "A greeting where you hold someone's hand and shake it." }
+    ]
+  },
+  salary: {
+    label: "Salary & Negotiation",
+    level: "B1–B2",
+    words: [
+      { word: "negotiate", hint: "To discuss something in order to reach an agreement." },
+      { word: "salary", hint: "The fixed amount of money you earn each year." },
+      { word: "benefits", hint: "Extra things a job gives you, like health insurance." },
+      { word: "raise", hint: "An increase in your salary." },
+      { word: "overtime", hint: "Extra hours worked beyond your normal schedule." },
+      { word: "compensation", hint: "The total pay and benefits you receive." },
+      { word: "counteroffer", hint: "A new offer made in response to another offer." }
+    ]
+  },
+  workRights: {
+    label: "Workplace Rights",
+    level: "B1–B2",
+    words: [
+      { word: "minimum wage", hint: "The lowest amount an employer can legally pay." },
+      { word: "discrimination", hint: "Unfair treatment based on things like race or gender." },
+      { word: "harassment", hint: "Behavior that makes someone feel unsafe or uncomfortable at work." },
+      { word: "union", hint: "A group of workers who join together to protect their rights." },
+      { word: "contract", hint: "A written agreement about the terms of your job." },
+      { word: "termination", hint: "The ending of someone's employment." },
+      { word: "leave", hint: "Approved time away from work, such as sick leave." }
+    ]
+  },
+  everyday: {
+    label: "Everyday Life",
+    level: "A1–A2",
+    words: [
+      { word: "breakfast", hint: "The first meal of the day." },
+      { word: "weather", hint: "The condition outside, like rain or sun." },
+      { word: "neighbor", hint: "A person who lives near you." },
+      { word: "grocery", hint: "Food and household items you buy at a store." },
+      { word: "holiday", hint: "A day of celebration or rest from work." },
+      { word: "schedule", hint: "A plan of what will happen and when." }
+    ]
+  },
+  travel: {
+    label: "Travel",
+    level: "A2–B1",
+    words: [
+      { word: "passport", hint: "A document that lets you travel to other countries." },
+      { word: "luggage", hint: "Bags and suitcases you take when you travel." },
+      { word: "itinerary", hint: "A planned schedule for a trip." },
+      { word: "customs", hint: "The place at a border where officials check your bags." },
+      { word: "boarding pass", hint: "The ticket you show to get on a plane." },
+      { word: "layover", hint: "A stop between flights on the way to your destination." }
+    ]
+  }
+};
+
+/* ---------------------------------------------------------
+   STATE
+   --------------------------------------------------------- */
+let state = {
+  mode: null,          // 'teacher' | 'freeplay'
+  word: "",
+  hint: "",
+  categoryLabel: "",
+  maxWrong: 6,
+  guessed: new Set(),
+  wrongCount: 0,
+  status: "playing",   // 'playing' | 'won' | 'lost'
+  hintShown: false
+};
+let score = { wins: 0, losses: 0 };
+
+const HANGMAN_PARTS = ["hm-head", "hm-torso", "hm-arm-l", "hm-arm-r", "hm-leg-l", "hm-leg-r"];
+
+/* ---------------------------------------------------------
+   SCREEN NAVIGATION
+   --------------------------------------------------------- */
+function goTo(screenId) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(screenId).classList.add("active");
+  document.getElementById("teacherPeek").style.display = "none";
+  document.getElementById("peekPop").classList.remove("show");
+}
+
+function confirmQuit() {
+  if (state.status === "playing") {
+    if (!confirm("End this round and return to the menu?")) return;
+  }
+  goTo("screen-start");
+}
+
+/* ---------------------------------------------------------
+   TEACHER SETUP
+   --------------------------------------------------------- */
+let selectedCategory = null;
+
+function renderCategoryGrid() {
+  const grid = document.getElementById("categoryGrid");
+  grid.innerHTML = "";
+  Object.entries(WORD_BANKS).forEach(([key, bank]) => {
+    const btn = document.createElement("button");
+    btn.className = "cat-btn";
+    btn.type = "button";
+    btn.innerHTML = `<span class="cat-name">${bank.label}</span><span class="cat-level">${bank.level}</span>`;
+    btn.onclick = () => {
+      selectedCategory = key;
+      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+    };
+    grid.appendChild(btn);
+  });
+}
+renderCategoryGrid();
+selectedCategory = Object.keys(WORD_BANKS)[0];
+// mark first as selected by default once grid exists
+setTimeout(() => {
+  const first = document.querySelector(".cat-btn");
+  if (first) first.classList.add("selected");
+}, 0);
+
+function startTeacherGame() {
+  const bank = WORD_BANKS[selectedCategory];
+  const entry = bank.words[Math.floor(Math.random() * bank.words.length)];
+  const maxWrong = parseInt(document.getElementById("teacherDifficulty").value, 10);
+  beginGame({
+    mode: "teacher",
+    word: entry.word,
+    hint: entry.hint || "",
+    categoryLabel: `${bank.label} · ${bank.level}`,
+    maxWrong
+  });
+}
+
+/* ---------------------------------------------------------
+   FREEPLAY SETUP
+   --------------------------------------------------------- */
+function startFreeplayGame() {
+  const wordInput = document.getElementById("freeplayWord");
+  const hintInput = document.getElementById("freeplayHint");
+  const errBox = document.getElementById("freeplayError");
+  const raw = wordInput.value.trim();
+
+  if (!raw || !/[a-zA-Z]/.test(raw)) {
+    errBox.textContent = "Please enter a word or phrase using letters.";
+    errBox.style.display = "block";
+    return;
+  }
+  errBox.style.display = "none";
+
+  const maxWrong = parseInt(document.getElementById("freeplayDifficulty").value, 10);
+  beginGame({
+    mode: "freeplay",
+    word: raw.toLowerCase(),
+    hint: hintInput.value.trim(),
+    categoryLabel: "Freeplay",
+    maxWrong
+  });
+
+  wordInput.value = "";
+  hintInput.value = "";
+}
+
+/* ---------------------------------------------------------
+   CORE GAME LOGIC
+   --------------------------------------------------------- */
+function beginGame({ mode, word, hint, categoryLabel, maxWrong }) {
+  state = {
+    mode,
+    word,
+    hint,
+    categoryLabel,
+    maxWrong,
+    guessed: new Set(),
+    wrongCount: 0,
+    status: "playing",
+    hintShown: false
+  };
+
+  document.getElementById("categoryTag").textContent = categoryLabel;
+  document.getElementById("resultBanner").className = "result-banner";
+  document.getElementById("resultBanner").textContent = "";
+  document.getElementById("postGameControls").style.display = "none";
+  document.getElementById("hintArea").textContent = "";
+  document.getElementById("hintBtn").style.display = hint ? "inline-flex" : "none";
+  document.getElementById("hintBtn").disabled = false;
+  document.getElementById("hintBtn").textContent = "💡 Show hint";
+
+  resetHangman();
+  renderWordDisplay();
+  renderKeyboard();
+
+  const peekWrap = document.getElementById("teacherPeek");
+  if (mode === "teacher") {
+    peekWrap.style.display = "block";
+    document.getElementById("peekPop").textContent = word;
+  } else {
+    peekWrap.style.display = "none";
+  }
+
+  goTo("screen-game");
+}
+
+function resetHangman() {
+  HANGMAN_PARTS.forEach(id => {
+    const el = document.getElementById(id);
+    const len = el.getAttribute("stroke-dasharray");
+    el.style.transition = "none";
+    el.setAttribute("stroke-dashoffset", len);
+  });
+}
+
+function renderWordDisplay() {
+  const container = document.getElementById("wordDisplay");
+  container.innerHTML = "";
+  [...state.word].forEach(ch => {
+    if (ch === " ") {
+      const sp = document.createElement("div");
+      sp.className = "letter-slot space";
+      container.appendChild(sp);
+      return;
+    }
+    const slot = document.createElement("div");
+    slot.className = "letter-slot";
+    const isRevealed = state.guessed.has(ch.toLowerCase());
+    if (isRevealed) {
+      slot.textContent = ch;
+      slot.classList.add("revealed");
+    }
+    container.appendChild(slot);
+  });
+}
+
+function renderKeyboard() {
+  const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+  const kb = document.getElementById("keyboard");
+  kb.innerHTML = "";
+  rows.forEach(rowLetters => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "kb-row";
+    [...rowLetters].forEach(letter => {
+      const key = document.createElement("button");
+      key.className = "key";
+      key.textContent = letter.toUpperCase();
+      key.id = "key-" + letter;
+      key.setAttribute("aria-label", "Guess letter " + letter);
+      key.onclick = () => guessLetter(letter);
+      rowEl.appendChild(key);
+    });
+    kb.appendChild(rowEl);
+  });
+}
+
+function guessLetter(letter) {
+  if (state.status !== "playing") return;
+  letter = letter.toLowerCase();
+  if (state.guessed.has(letter)) return;
+  state.guessed.add(letter);
+
+  const keyEl = document.getElementById("key-" + letter);
+  const isInWord = state.word.toLowerCase().includes(letter);
+
+  if (isInWord) {
+    keyEl.classList.add("correct");
+    keyEl.disabled = true;
+    renderWordDisplay();
+    checkWin();
+  } else {
+    keyEl.classList.add("wrong");
+    keyEl.disabled = true;
+    state.wrongCount++;
+    updateHangman();
+    checkLoss();
+  }
+}
+
+function updateHangman() {
+  const stagesToShow = Math.min(
+    HANGMAN_PARTS.length,
+    Math.ceil((state.wrongCount / state.maxWrong) * HANGMAN_PARTS.length)
+  );
+  for (let i = 0; i < stagesToShow; i++) {
+    const el = document.getElementById(HANGMAN_PARTS[i]);
+    el.style.transition = "stroke-dashoffset 0.5s ease";
+    el.setAttribute("stroke-dashoffset", "0");
+  }
+}
+
+function checkWin() {
+  const uniqueLetters = new Set([...state.word.toLowerCase()].filter(c => c !== " "));
+  const allGuessed = [...uniqueLetters].every(l => state.guessed.has(l));
+  if (allGuessed) {
+    state.status = "won";
+    score.wins++;
+    endGame(true);
+  }
+}
+
+function checkLoss() {
+  if (state.wrongCount >= state.maxWrong) {
+    state.status = "lost";
+    score.losses++;
+    endGame(false);
+  }
+}
+
+function endGame(won) {
+  document.querySelectorAll(".key").forEach(k => k.disabled = true);
+  document.getElementById("hintBtn").disabled = true;
+  document.getElementById("scoreWins").textContent = score.wins;
+  document.getElementById("scoreLosses").textContent = score.losses;
+
+  const banner = document.getElementById("resultBanner");
+  if (won) {
+    banner.className = "result-banner won";
+    banner.textContent = "🎉 Well done — you got it!";
+  } else {
+    banner.className = "result-banner lost";
+    banner.innerHTML = `😞 Out of guesses.<div class="reveal-answer">The word was: <strong>${state.word}</strong></div>`;
+    // reveal all letters
+    [...state.word].forEach(ch => { if (ch !== " ") state.guessed.add(ch.toLowerCase()); });
+    renderWordDisplay();
+  }
+  document.getElementById("postGameControls").style.display = "flex";
+}
+
+function revealHint() {
+  if (!state.hint) return;
+  state.hintShown = true;
+  document.getElementById("hintArea").textContent = "Hint: " + state.hint;
+  document.getElementById("hintBtn").disabled = true;
+  document.getElementById("hintBtn").textContent = "💡 Hint shown";
+}
+
+function playAgainSameMode() {
+  if (state.mode === "teacher") {
+    goTo("screen-teacher-setup");
+  } else {
+    goTo("screen-freeplay-setup");
+  }
+}
+
+/* ---------------------------------------------------------
+   TEACHER PEEK (private answer check)
+   --------------------------------------------------------- */
+document.getElementById("peekBtn").addEventListener("click", () => {
+  const pop = document.getElementById("peekPop");
+  pop.classList.toggle("show");
+  if (pop.classList.contains("show")) {
+    setTimeout(() => pop.classList.remove("show"), 2500);
+  }
+});
+
+/* ---------------------------------------------------------
+   PHYSICAL KEYBOARD SUPPORT
+   --------------------------------------------------------- */
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("screen-game").classList.contains("active")) {
+    const letter = e.key.toLowerCase();
+    if (/^[a-z]$/.test(letter)) guessLetter(letter);
+  }
+});
+</script>
+
+</body>
+</html>
