@@ -9,13 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 
-  /* =========================================================
-     DESIGN TOKENS
-     Theme: a real chalkboard. Deep board green, chalk-white
-     strokes, dusty chalk accents. Signature element: the
-     hangman + letters are "drawn" with a hand-lettered font
-     and a chalky stroke-reveal animation.
-     ========================================================= */
   :root {
     --board: #2b3a32;
     --board-dark: #1f2b25;
@@ -26,8 +19,6 @@
     --chalk-green: #8fbf7f;
     --chalk-green-dark: #4f6e46;
     --chalk-coral: #c1665a;
-    --tray: #7a5a3f;
-    --tray-dark: #5e4530;
     --radius: 10px;
     --font-display: 'Kalam', cursive;
     --font-body: 'Nunito', system-ui, sans-serif;
@@ -85,7 +76,6 @@
     opacity: 0.7;
   }
 
-  /* Generic panel = a "slate" resting on the board */
   .panel {
     background: var(--board-dark);
     border: 1px solid var(--board-line);
@@ -99,7 +89,6 @@
   .screen { display: none; width: 100%; max-width: 640px; }
   .screen.active { display: block; }
 
-  /* Buttons */
   button {
     font-family: var(--font-body);
     cursor: pointer;
@@ -129,19 +118,17 @@
     border: 2px solid var(--board-line);
   }
   .btn.secondary:hover { border-color: var(--chalk-yellow); }
+  .btn.danger { background: var(--chalk-coral); color: var(--board-dark); }
   .btn.wide { width: 100%; }
   .btn.small { padding: 8px 14px; font-size: 0.82rem; }
 
-  /* ---------- START SCREEN ---------- */
   .mode-choices {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
     margin-top: 8px;
   }
-  @media (max-width: 520px) {
-    .mode-choices { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 520px) { .mode-choices { grid-template-columns: 1fr; } }
   .mode-card {
     background: var(--board);
     border: 1px solid var(--board-line);
@@ -156,7 +143,6 @@
   .mode-card h3 { font-size: 1.3rem; margin-bottom: 6px; }
   .mode-card p { margin: 0; font-size: 0.85rem; color: var(--chalk-dim); line-height: 1.4; }
 
-  /* ---------- SETUP SCREENS ---------- */
   .field { margin-bottom: 18px; }
   .field label {
     display: block;
@@ -167,7 +153,7 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
-  select, input[type="text"], input[type="password"] {
+  select, input[type="text"], input[type="password"], textarea {
     width: 100%;
     padding: 12px 14px;
     border-radius: 8px;
@@ -177,7 +163,17 @@
     font-family: var(--font-body);
     font-size: 1rem;
   }
-  select:focus, input:focus { border-color: var(--chalk-yellow); outline: none; }
+  textarea { font-family: monospace; font-size: 0.82rem; min-height: 140px; resize: vertical; }
+  select:focus, input:focus, textarea:focus { border-color: var(--chalk-yellow); outline: none; }
+
+  .row-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
   .category-grid {
     display: grid;
@@ -187,16 +183,37 @@
   }
   @media (max-width: 480px) { .category-grid { grid-template-columns: 1fr; } }
   .cat-btn {
+    position: relative;
     background: var(--board);
     border: 2px solid var(--board-line);
     border-radius: 8px;
     padding: 12px 14px;
     text-align: left;
     color: var(--chalk);
+    width: 100%;
   }
-  .cat-btn .cat-name { font-weight: 800; display: block; font-size: 0.95rem; }
+  .cat-btn .cat-name { font-weight: 800; display: block; font-size: 0.95rem; padding-right: 46px; }
   .cat-btn .cat-level { font-size: 0.72rem; color: var(--chalk-yellow); text-transform: uppercase; letter-spacing: 0.05em; }
   .cat-btn:hover, .cat-btn.selected { border-color: var(--chalk-yellow); }
+  .custom-badge {
+    position: absolute; top: 10px; right: 10px;
+    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.04em;
+    background: rgba(232,178,61,0.18); color: var(--chalk-yellow);
+    padding: 2px 6px; border-radius: 10px;
+  }
+  .cat-edit-controls {
+    display: flex; gap: 6px; margin-top: 8px;
+  }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--board-line);
+    color: var(--chalk-dim);
+    border-radius: 6px;
+    padding: 4px 9px;
+    font-size: 0.75rem;
+  }
+  .icon-btn:hover { border-color: var(--chalk-yellow); color: var(--chalk-yellow); }
+  .icon-btn.danger:hover { border-color: var(--chalk-coral); color: var(--chalk-coral); }
 
   .diff-row { display: flex; gap: 10px; }
   .diff-row select { flex: 1; }
@@ -224,7 +241,6 @@
   }
   .back-link:hover { color: var(--chalk-yellow); }
 
-  /* ---------- GAME SCREEN ---------- */
   .game-topbar {
     display: flex;
     justify-content: space-between;
@@ -297,7 +313,6 @@
     flex-wrap: wrap;
   }
 
-  /* On-screen keyboard */
   .keyboard {
     display: flex;
     flex-direction: column;
@@ -334,42 +349,70 @@
     .key { width: 28px; height: 38px; font-size: 0.9rem; }
   }
 
-  /* Teacher peek button — deliberately tucked away, revealed only on demand */
+  /* ---- Discreet teacher peek: press-and-hold, invisible until held ---- */
   .teacher-peek {
     position: fixed;
     top: 14px;
     right: 14px;
     z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .peek-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     background: var(--board-dark);
     border: 1px solid var(--board-line);
     color: var(--chalk-dim);
-    border-radius: 20px;
-    padding: 8px 14px;
-    font-size: 0.78rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
   }
   .peek-btn:hover { color: var(--chalk-yellow); border-color: var(--chalk-yellow); }
-  .peek-popover {
-    position: absolute;
-    top: 44px;
-    right: 0;
+  .peek-btn.active { color: var(--board-dark); background: var(--chalk-yellow); border-color: var(--chalk-yellow); }
+  .peek-reveal {
     background: var(--chalk);
     color: var(--board-dark);
-    padding: 10px 16px;
+    padding: 8px 14px;
     border-radius: 8px;
     font-family: var(--font-display);
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     white-space: nowrap;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    display: none;
+    opacity: 0;
+    transform: translateX(4px);
+    pointer-events: none;
+    transition: opacity 0.08s ease;
   }
-  .peek-popover.show { display: block; }
+  .peek-reveal.show { opacity: 1; }
 
-  /* Result overlay */
+  /* Sound toggle — mirrors the peek button, opposite corner, always visible */
+  .sound-toggle {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 50;
+  }
+  .sound-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--board-dark);
+    border: 1px solid var(--board-line);
+    color: var(--chalk-dim);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sound-btn:hover { color: var(--chalk-yellow); border-color: var(--chalk-yellow); }
+  .sound-btn.muted { color: var(--chalk-coral); border-color: var(--chalk-coral); }
+
   .result-banner {
     text-align: center;
     padding: 14px;
@@ -390,10 +433,32 @@
     color: rgba(242,239,230,0.35);
   }
 
-  .visually-hidden {
-    position: absolute; width: 1px; height: 1px;
-    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+  .bank-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .bank-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--board);
+    border: 1px solid var(--board-line);
+    border-radius: 8px;
+    padding: 12px 14px;
   }
+  .bank-list-item .bli-name { font-weight: 800; font-size: 0.92rem; }
+  .bank-list-item .bli-level { font-size: 0.72rem; color: var(--chalk-yellow); text-transform: uppercase; }
+  .bank-list-item .bli-meta { display: flex; flex-direction: column; gap: 2px; }
+  .bank-list-item .bli-actions { display: flex; gap: 6px; }
+  .empty-note { color: var(--chalk-dim); font-size: 0.85rem; padding: 10px 0 20px; }
+
+  .word-row {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr auto;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  @media (max-width: 480px) { .word-row { grid-template-columns: 1fr; } }
+
+  .export-box { margin-top: 10px; }
 
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
@@ -408,12 +473,15 @@
   <p class="subtitle">A hangman game for the ESL classroom</p>
   <svg class="chalk-underline" viewBox="0 0 140 6"><path d="M2 3 Q35 0 70 3 T138 3" stroke="#e8b23d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
 
-  <!-- teacher peek control, only present during an active teacher-mode game -->
+  <!-- sound toggle: always visible -->
+  <div class="sound-toggle">
+    <button class="sound-btn" id="soundBtn" title="Mute or unmute sound effects" aria-label="Toggle sound effects">🔊</button>
+  </div>
+
+  <!-- teacher peek control: press and hold to reveal, only present during a teacher-mode game -->
   <div class="teacher-peek" id="teacherPeek" style="display:none;">
-    <button class="peek-btn" id="peekBtn" aria-describedby="peekPop">
-      👁 Teacher peek
-    </button>
-    <div class="peek-popover" id="peekPop"></div>
+    <div class="peek-reveal" id="peekReveal"></div>
+    <button class="peek-btn" id="peekBtn" title="Hold to reveal answer (teacher only) — or hold the P key" aria-label="Hold to reveal answer, teacher only">👁</button>
   </div>
 
   <!-- ============ START SCREEN ============ -->
@@ -425,7 +493,7 @@
         <button class="mode-card" onclick="goTo('screen-teacher-setup')">
           <span class="mode-icon">🧑‍🏫</span>
           <h3>Teacher Mode</h3>
-          <p>Choose a themed word bank by level. Includes hints and a private answer peek.</p>
+          <p>Choose a themed word bank by level. Includes hints and a private, press-and-hold answer peek.</p>
         </button>
         <button class="mode-card" onclick="goTo('screen-freeplay-setup')">
           <span class="mode-icon">✏️</span>
@@ -440,7 +508,10 @@
   <div class="screen" id="screen-teacher-setup">
     <div class="panel">
       <button class="back-link" onclick="goTo('screen-start')">← Back</button>
-      <h2 style="font-size:1.3rem; margin-bottom:14px;">Teacher Mode setup</h2>
+      <div class="row-header">
+        <h2 style="font-size:1.3rem;">Teacher Mode setup</h2>
+        <button class="btn secondary small" onclick="openBankManager()">✏️ Manage word banks</button>
+      </div>
 
       <div class="field">
         <label>Word bank</label>
@@ -458,7 +529,7 @@
         </div>
       </div>
 
-      <p class="hint-note">A random word from the chosen bank will be selected. You'll get a private "Teacher peek" button during the game — click it discreetly to check the answer without showing the class.</p>
+      <p class="hint-note">A random word from the chosen bank will be selected. During the game, press and hold the 👁 button (or hold the "P" key) to privately check the answer — it disappears the instant you let go.</p>
 
       <button class="btn wide" style="margin-top:16px;" onclick="startTeacherGame()">Start game</button>
     </div>
@@ -496,6 +567,68 @@
     </div>
   </div>
 
+  <!-- ============ BANK MANAGER (list) ============ -->
+  <div class="screen" id="screen-bank-manager">
+    <div class="panel">
+      <button class="back-link" onclick="goTo('screen-teacher-setup')">← Back to Teacher Mode</button>
+      <div class="row-header">
+        <h2 style="font-size:1.3rem;">Your word banks</h2>
+        <button class="btn small" onclick="openBankForm()">＋ New word bank</button>
+      </div>
+
+      <div class="bank-list" id="customBankList"></div>
+      <p class="empty-note" id="noCustomBanksNote" style="display:none;">You haven't created any custom word banks yet.</p>
+
+      <div class="field" style="margin-top:10px;">
+        <label>Backup / share your word banks</label>
+        <div class="controls-row" style="justify-content:flex-start; margin:0 0 10px;">
+          <button class="btn secondary small" onclick="exportBanks()">⬇ Export as text</button>
+          <button class="btn secondary small" onclick="toggleImportBox()">⬆ Import from text</button>
+        </div>
+        <div class="export-box" id="exportBox" style="display:none;">
+          <textarea id="exportOutput" readonly></textarea>
+        </div>
+        <div class="export-box" id="importBox" style="display:none;">
+          <textarea id="importInput" placeholder="Paste previously exported word bank text here"></textarea>
+          <button class="btn small" style="margin-top:8px;" onclick="importBanks()">Load into game</button>
+          <p class="hint-note" id="importError" style="display:none; border-color: var(--chalk-coral); color: var(--chalk-coral);"></p>
+        </div>
+      </div>
+
+      <p class="hint-note">Custom word banks only last for this browser session (this is a static page with no server). Use Export before you close the tab, and Import next time to bring them back — or save the exported text in your lesson notes.</p>
+    </div>
+  </div>
+
+  <!-- ============ BANK MANAGER (create / edit form) ============ -->
+  <div class="screen" id="screen-bank-form">
+    <div class="panel">
+      <button class="back-link" onclick="goTo('screen-bank-manager')">← Back to word banks</button>
+      <h2 style="font-size:1.3rem; margin-bottom:14px;" id="bankFormTitle">New word bank</h2>
+
+      <div class="field">
+        <label for="bankLabelInput">Bank name</label>
+        <input type="text" id="bankLabelInput" placeholder="e.g. Phrasal Verbs">
+      </div>
+      <div class="field">
+        <label for="bankLevelInput">CEFR level (optional)</label>
+        <input type="text" id="bankLevelInput" placeholder="e.g. B1–B2">
+      </div>
+
+      <div class="field">
+        <label>Words &amp; hints</label>
+        <div id="wordRows"></div>
+        <button class="btn secondary small" onclick="addWordRow()">＋ Add word</button>
+      </div>
+
+      <p class="hint-note" id="bankFormError" style="display:none; border-color: var(--chalk-coral); color: var(--chalk-coral);"></p>
+
+      <div class="controls-row" style="justify-content:flex-start; margin-top:16px;">
+        <button class="btn" onclick="saveBankForm()">Save word bank</button>
+        <button class="btn secondary" onclick="goTo('screen-bank-manager')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ GAME SCREEN ============ -->
   <div class="screen" id="screen-game">
     <div class="panel">
@@ -511,12 +644,10 @@
 
       <div class="hangman-wrap">
         <svg id="hangmanSvg" width="180" height="200" viewBox="0 0 180 200">
-          <!-- gallows, always visible -->
           <line x1="15" y1="190" x2="115" y2="190" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
           <line x1="40" y1="190" x2="40" y2="20" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
           <line x1="40" y1="20" x2="120" y2="20" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
           <line x1="120" y1="20" x2="120" y2="42" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>
-          <!-- body parts, revealed progressively -->
           <circle id="hm-head" cx="120" cy="58" r="16" stroke="#e8b23d" stroke-width="4.5" fill="none" stroke-dasharray="101" stroke-dashoffset="101"/>
           <line id="hm-torso" x1="120" y1="74" x2="120" y2="122" stroke="#e8b23d" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="48" stroke-dashoffset="48"/>
           <line id="hm-arm-l" x1="120" y1="85" x2="100" y2="105" stroke="#e8b23d" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="29" stroke-dashoffset="29"/>
@@ -544,16 +675,109 @@
     </div>
   </div>
 
-  <p class="footer-note">Built for ESL classrooms · edit the <code>WORD_BANKS</code> object in the source to add your own units</p>
+  <p class="footer-note">Built for ESL classrooms · built-in word lists live in the <code>WORD_BANKS</code> object in the source</p>
 </div>
 
 <script>
 /* =========================================================
-   WORD BANKS
-   Add or edit categories/words here. Each word may include
-   an optional short "hint" (a definition or example sentence)
-   which the class can reveal with the hint button.
-   Difficulty labels are shown to the teacher only.
+   AUDIO ENGINE
+   All sound effects are synthesized with the Web Audio API —
+   no external audio files needed, so the game stays a single
+   self-contained HTML file. The AudioContext is created lazily
+   on first user interaction (browsers block autoplay otherwise).
+   ========================================================= */
+let soundEnabled = true;
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freq, duration, type = "sine", when = 0, peakGain = 0.15, freqEnd = null) {
+  if (!soundEnabled) return;
+  const ctx = getAudioCtx();
+  const startTime = ctx.currentTime + when;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startTime);
+  if (freqEnd !== null) {
+    osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 1), startTime + duration);
+  }
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+
+function playClick() {
+  playTone(700, 0.05, "triangle", 0, 0.06);
+}
+
+function playCorrect() {
+  playTone(660, 0.12, "sine", 0, 0.14);
+  playTone(880, 0.16, "sine", 0.1, 0.14);
+}
+
+function playWrong() {
+  playTone(220, 0.28, "sawtooth", 0, 0.1, 140);
+}
+
+function playHint() {
+  playTone(1100, 0.35, "sine", 0, 0.09);
+}
+
+function playWin() {
+  [523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.22, "sine", i * 0.12, 0.13));
+}
+
+function playLose() {
+  [300, 250, 190].forEach((f, i) => playTone(f, 0.35, "sawtooth", i * 0.18, 0.1));
+}
+
+function playChalkSwoosh() {
+  if (!soundEnabled) return;
+  const ctx = getAudioCtx();
+  const bufferSize = ctx.sampleRate * 0.25;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = "bandpass";
+  filter.frequency.setValueAtTime(1800, ctx.currentTime);
+  filter.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.25);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.12, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  noise.start();
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById("soundBtn");
+  btn.textContent = soundEnabled ? "🔊" : "🔇";
+  btn.classList.toggle("muted", !soundEnabled);
+  if (soundEnabled) { getAudioCtx(); playClick(); }
+}
+document.getElementById("soundBtn").addEventListener("click", toggleSound);
+
+/* =========================================================
+   BUILT-IN WORD BANKS
+   Add or edit categories/words here, or use the in-page
+   "Manage word banks" screen to add your own without
+   touching code.
    ========================================================= */
 const WORD_BANKS = {
   jobSearch: {
@@ -636,32 +860,41 @@ const WORD_BANKS = {
   }
 };
 
+/* Custom, teacher-created banks live here (in-memory for this session). */
+let customBanks = {};
+
+function combinedBanks() {
+  return Object.assign({}, WORD_BANKS, customBanks);
+}
+
 /* ---------------------------------------------------------
    STATE
    --------------------------------------------------------- */
 let state = {
-  mode: null,          // 'teacher' | 'freeplay'
+  mode: null,
   word: "",
   hint: "",
   categoryLabel: "",
   maxWrong: 6,
   guessed: new Set(),
   wrongCount: 0,
-  status: "playing",   // 'playing' | 'won' | 'lost'
+  status: "playing",
   hintShown: false
 };
 let score = { wins: 0, losses: 0 };
-
 const HANGMAN_PARTS = ["hm-head", "hm-torso", "hm-arm-l", "hm-arm-r", "hm-leg-l", "hm-leg-r"];
 
 /* ---------------------------------------------------------
    SCREEN NAVIGATION
    --------------------------------------------------------- */
 function goTo(screenId) {
+  playClick();
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(screenId).classList.add("active");
   document.getElementById("teacherPeek").style.display = "none";
-  document.getElementById("peekPop").classList.remove("show");
+  document.getElementById("peekReveal").classList.remove("show");
+  if (screenId === "screen-teacher-setup") renderCategoryGrid();
+  if (screenId === "screen-bank-manager") renderBankManagerList();
 }
 
 function confirmQuit() {
@@ -672,43 +905,74 @@ function confirmQuit() {
 }
 
 /* ---------------------------------------------------------
-   TEACHER SETUP
+   TEACHER SETUP — category grid (built-in + custom banks)
    --------------------------------------------------------- */
 let selectedCategory = null;
 
 function renderCategoryGrid() {
   const grid = document.getElementById("categoryGrid");
   grid.innerHTML = "";
-  Object.entries(WORD_BANKS).forEach(([key, bank]) => {
-    const btn = document.createElement("button");
-    btn.className = "cat-btn";
-    btn.type = "button";
-    btn.innerHTML = `<span class="cat-name">${bank.label}</span><span class="cat-level">${bank.level}</span>`;
-    btn.onclick = () => {
-      selectedCategory = key;
-      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
-    };
-    grid.appendChild(btn);
+  const banks = combinedBanks();
+  const keys = Object.keys(banks);
+  if (!selectedCategory || !banks[selectedCategory]) selectedCategory = keys[0];
+
+  keys.forEach(key => {
+    const bank = banks[key];
+    const isCustom = !!customBanks[key];
+    const card = document.createElement("div");
+    card.className = "cat-btn" + (key === selectedCategory ? " selected" : "");
+
+    const selectBtn = document.createElement("button");
+    selectBtn.type = "button";
+    selectBtn.style.background = "none";
+    selectBtn.style.border = "none";
+    selectBtn.style.color = "inherit";
+    selectBtn.style.width = "100%";
+    selectBtn.style.textAlign = "left";
+    selectBtn.style.padding = "0";
+    selectBtn.innerHTML = `<span class="cat-name">${bank.label}</span><span class="cat-level">${bank.level || ""}</span>`;
+    selectBtn.onclick = () => { playClick(); selectedCategory = key; renderCategoryGrid(); };
+    card.appendChild(selectBtn);
+
+    if (isCustom) {
+      const badge = document.createElement("span");
+      badge.className = "custom-badge";
+      badge.textContent = "Custom";
+      card.appendChild(badge);
+
+      const controls = document.createElement("div");
+      controls.className = "cat-edit-controls";
+      const editBtn = document.createElement("button");
+      editBtn.className = "icon-btn";
+      editBtn.textContent = "Edit";
+      editBtn.onclick = (e) => { e.stopPropagation(); openBankForm(key); };
+      const delBtn = document.createElement("button");
+      delBtn.className = "icon-btn danger";
+      delBtn.textContent = "Delete";
+      delBtn.onclick = (e) => { e.stopPropagation(); deleteBank(key, true); };
+      controls.appendChild(editBtn);
+      controls.appendChild(delBtn);
+      card.appendChild(controls);
+    }
+
+    grid.appendChild(card);
   });
 }
-renderCategoryGrid();
-selectedCategory = Object.keys(WORD_BANKS)[0];
-// mark first as selected by default once grid exists
-setTimeout(() => {
-  const first = document.querySelector(".cat-btn");
-  if (first) first.classList.add("selected");
-}, 0);
 
 function startTeacherGame() {
-  const bank = WORD_BANKS[selectedCategory];
+  const banks = combinedBanks();
+  const bank = banks[selectedCategory];
+  if (!bank || !bank.words || bank.words.length === 0) {
+    alert("This word bank has no words yet. Add some in Manage word banks first.");
+    return;
+  }
   const entry = bank.words[Math.floor(Math.random() * bank.words.length)];
   const maxWrong = parseInt(document.getElementById("teacherDifficulty").value, 10);
   beginGame({
     mode: "teacher",
     word: entry.word,
     hint: entry.hint || "",
-    categoryLabel: `${bank.label} · ${bank.level}`,
+    categoryLabel: `${bank.label}${bank.level ? " · " + bank.level : ""}`,
     maxWrong
   });
 }
@@ -747,15 +1011,8 @@ function startFreeplayGame() {
    --------------------------------------------------------- */
 function beginGame({ mode, word, hint, categoryLabel, maxWrong }) {
   state = {
-    mode,
-    word,
-    hint,
-    categoryLabel,
-    maxWrong,
-    guessed: new Set(),
-    wrongCount: 0,
-    status: "playing",
-    hintShown: false
+    mode, word, hint, categoryLabel, maxWrong,
+    guessed: new Set(), wrongCount: 0, status: "playing", hintShown: false
   };
 
   document.getElementById("categoryTag").textContent = categoryLabel;
@@ -770,11 +1027,12 @@ function beginGame({ mode, word, hint, categoryLabel, maxWrong }) {
   resetHangman();
   renderWordDisplay();
   renderKeyboard();
+  playChalkSwoosh();
 
   const peekWrap = document.getElementById("teacherPeek");
   if (mode === "teacher") {
-    peekWrap.style.display = "block";
-    document.getElementById("peekPop").textContent = word;
+    peekWrap.style.display = "flex";
+    document.getElementById("peekReveal").textContent = word;
   } else {
     peekWrap.style.display = "none";
   }
@@ -803,8 +1061,7 @@ function renderWordDisplay() {
     }
     const slot = document.createElement("div");
     slot.className = "letter-slot";
-    const isRevealed = state.guessed.has(ch.toLowerCase());
-    if (isRevealed) {
+    if (state.guessed.has(ch.toLowerCase())) {
       slot.textContent = ch;
       slot.classList.add("revealed");
     }
@@ -844,11 +1101,13 @@ function guessLetter(letter) {
   if (isInWord) {
     keyEl.classList.add("correct");
     keyEl.disabled = true;
+    playCorrect();
     renderWordDisplay();
     checkWin();
   } else {
     keyEl.classList.add("wrong");
     keyEl.disabled = true;
+    playWrong();
     state.wrongCount++;
     updateHangman();
     checkLoss();
@@ -895,12 +1154,13 @@ function endGame(won) {
   if (won) {
     banner.className = "result-banner won";
     banner.textContent = "🎉 Well done — you got it!";
+    playWin();
   } else {
     banner.className = "result-banner lost";
     banner.innerHTML = `😞 Out of guesses.<div class="reveal-answer">The word was: <strong>${state.word}</strong></div>`;
-    // reveal all letters
     [...state.word].forEach(ch => { if (ch !== " ") state.guessed.add(ch.toLowerCase()); });
     renderWordDisplay();
+    playLose();
   }
   document.getElementById("postGameControls").style.display = "flex";
 }
@@ -908,39 +1168,224 @@ function endGame(won) {
 function revealHint() {
   if (!state.hint) return;
   state.hintShown = true;
+  playHint();
   document.getElementById("hintArea").textContent = "Hint: " + state.hint;
   document.getElementById("hintBtn").disabled = true;
   document.getElementById("hintBtn").textContent = "💡 Hint shown";
 }
 
 function playAgainSameMode() {
-  if (state.mode === "teacher") {
-    goTo("screen-teacher-setup");
-  } else {
-    goTo("screen-freeplay-setup");
-  }
+  goTo(state.mode === "teacher" ? "screen-teacher-setup" : "screen-freeplay-setup");
 }
 
 /* ---------------------------------------------------------
-   TEACHER PEEK (private answer check)
+   TEACHER PEEK — press and hold only, hides instantly on release
    --------------------------------------------------------- */
-document.getElementById("peekBtn").addEventListener("click", () => {
-  const pop = document.getElementById("peekPop");
-  pop.classList.toggle("show");
-  if (pop.classList.contains("show")) {
-    setTimeout(() => pop.classList.remove("show"), 2500);
+const peekBtn = document.getElementById("peekBtn");
+const peekReveal = document.getElementById("peekReveal");
+
+function showPeek() {
+  if (state.mode !== "teacher" || state.status === undefined) return;
+  peekReveal.classList.add("show");
+  peekBtn.classList.add("active");
+}
+function hidePeek() {
+  peekReveal.classList.remove("show");
+  peekBtn.classList.remove("active");
+}
+peekBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); showPeek(); });
+["pointerup", "pointerleave", "pointercancel"].forEach(evt => peekBtn.addEventListener(evt, hidePeek));
+
+let peekKeyActive = false;
+document.addEventListener("keydown", (e) => {
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+  if (typing) return;
+  if (e.key.toLowerCase() === "p" && document.getElementById("screen-game").classList.contains("active")) {
+    if (!peekKeyActive) { peekKeyActive = true; showPeek(); }
+    return;
   }
+  if (document.getElementById("screen-game").classList.contains("active")) {
+    const letter = e.key.toLowerCase();
+    if (/^[a-z]$/.test(letter) && letter !== "p") guessLetter(letter);
+  }
+});
+document.addEventListener("keyup", (e) => {
+  if (e.key.toLowerCase() === "p") { peekKeyActive = false; hidePeek(); }
 });
 
 /* ---------------------------------------------------------
-   PHYSICAL KEYBOARD SUPPORT
+   WORD BANK MANAGER
    --------------------------------------------------------- */
-document.addEventListener("keydown", (e) => {
-  if (document.getElementById("screen-game").classList.contains("active")) {
-    const letter = e.key.toLowerCase();
-    if (/^[a-z]$/.test(letter)) guessLetter(letter);
+let editingBankKey = null; // null = creating new
+
+function openBankManager() {
+  goTo("screen-bank-manager");
+}
+
+function renderBankManagerList() {
+  const list = document.getElementById("customBankList");
+  const emptyNote = document.getElementById("noCustomBanksNote");
+  list.innerHTML = "";
+  const keys = Object.keys(customBanks);
+  emptyNote.style.display = keys.length === 0 ? "block" : "none";
+
+  keys.forEach(key => {
+    const bank = customBanks[key];
+    const item = document.createElement("div");
+    item.className = "bank-list-item";
+    item.innerHTML = `
+      <div class="bli-meta">
+        <span class="bli-name">${bank.label}</span>
+        <span class="bli-level">${bank.level || "No level set"} · ${bank.words.length} word${bank.words.length === 1 ? "" : "s"}</span>
+      </div>
+    `;
+    const actions = document.createElement("div");
+    actions.className = "bli-actions";
+    const editBtn = document.createElement("button");
+    editBtn.className = "icon-btn";
+    editBtn.textContent = "Edit";
+    editBtn.onclick = () => openBankForm(key);
+    const delBtn = document.createElement("button");
+    delBtn.className = "icon-btn danger";
+    delBtn.textContent = "Delete";
+    delBtn.onclick = () => deleteBank(key, false);
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    item.appendChild(actions);
+    list.appendChild(item);
+  });
+}
+
+function openBankForm(existingKey) {
+  editingBankKey = existingKey || null;
+  document.getElementById("bankFormError").style.display = "none";
+  const wordRows = document.getElementById("wordRows");
+  wordRows.innerHTML = "";
+
+  if (editingBankKey && customBanks[editingBankKey]) {
+    const bank = customBanks[editingBankKey];
+    document.getElementById("bankFormTitle").textContent = "Edit word bank";
+    document.getElementById("bankLabelInput").value = bank.label;
+    document.getElementById("bankLevelInput").value = bank.level || "";
+    bank.words.forEach(w => addWordRow(w.word, w.hint));
+  } else {
+    document.getElementById("bankFormTitle").textContent = "New word bank";
+    document.getElementById("bankLabelInput").value = "";
+    document.getElementById("bankLevelInput").value = "";
+    addWordRow("", "");
+    addWordRow("", "");
+    addWordRow("", "");
   }
-});
+  goTo("screen-bank-form");
+}
+
+function addWordRow(word = "", hint = "") {
+  const wordRows = document.getElementById("wordRows");
+  const row = document.createElement("div");
+  row.className = "word-row";
+  row.innerHTML = `
+    <input type="text" class="row-word" placeholder="word or phrase" value="${escapeAttr(word)}">
+    <input type="text" class="row-hint" placeholder="hint or definition (optional)" value="${escapeAttr(hint)}">
+    <button type="button" class="icon-btn danger">Remove</button>
+  `;
+  row.querySelector("button").onclick = () => { playClick(); row.remove(); };
+  wordRows.appendChild(row);
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function saveBankForm() {
+  const label = document.getElementById("bankLabelInput").value.trim();
+  const level = document.getElementById("bankLevelInput").value.trim();
+  const errBox = document.getElementById("bankFormError");
+
+  if (!label) {
+    errBox.textContent = "Please give the word bank a name.";
+    errBox.style.display = "block";
+    return;
+  }
+
+  const rows = [...document.querySelectorAll("#wordRows .word-row")];
+  const words = rows
+    .map(row => ({
+      word: row.querySelector(".row-word").value.trim().toLowerCase(),
+      hint: row.querySelector(".row-hint").value.trim()
+    }))
+    .filter(w => w.word.length > 0 && /[a-z]/.test(w.word));
+
+  if (words.length === 0) {
+    errBox.textContent = "Add at least one word using letters.";
+    errBox.style.display = "block";
+    return;
+  }
+
+  errBox.style.display = "none";
+
+  const key = editingBankKey || ("custom_" + Date.now());
+  customBanks[key] = { label, level, words, custom: true };
+  editingBankKey = null;
+  goTo("screen-bank-manager");
+}
+
+function deleteBank(key, fromCategoryGrid) {
+  if (!confirm(`Delete the word bank "${customBanks[key].label}"? This can't be undone (unless you've exported it).`)) return;
+  delete customBanks[key];
+  if (selectedCategory === key) selectedCategory = null;
+  if (fromCategoryGrid) {
+    renderCategoryGrid();
+  } else {
+    renderBankManagerList();
+  }
+}
+
+function exportBanks() {
+  playClick();
+  const box = document.getElementById("exportBox");
+  const importBox = document.getElementById("importBox");
+  importBox.style.display = "none";
+  box.style.display = "block";
+  document.getElementById("exportOutput").value = JSON.stringify(customBanks, null, 2);
+}
+
+function toggleImportBox() {
+  playClick();
+  const box = document.getElementById("importBox");
+  const exportBox = document.getElementById("exportBox");
+  exportBox.style.display = "none";
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+function importBanks() {
+  const errBox = document.getElementById("importError");
+  const raw = document.getElementById("importInput").value.trim();
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("bad shape");
+    Object.entries(parsed).forEach(([key, bank]) => {
+      if (bank && bank.label && Array.isArray(bank.words)) {
+        customBanks[key] = {
+          label: String(bank.label),
+          level: bank.level ? String(bank.level) : "",
+          words: bank.words
+            .filter(w => w && w.word)
+            .map(w => ({ word: String(w.word).toLowerCase(), hint: w.hint ? String(w.hint) : "" })),
+          custom: true
+        };
+      }
+    });
+    errBox.style.display = "none";
+    document.getElementById("importInput").value = "";
+    renderBankManagerList();
+    playCorrect();
+  } catch (e) {
+    errBox.textContent = "That doesn't look like valid exported text. Make sure you paste the full text exactly as exported.";
+    errBox.style.display = "block";
+    playWrong();
+  }
+}
 </script>
 
 </body>
