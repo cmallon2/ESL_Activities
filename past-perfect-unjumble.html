@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Past Perfect Departures — Sentence Unjumble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #141b24;
+    --panel: #1d2733;
+    --panel-alt: #253244;
+    --rail: #2c3a4d;
+    --amber: #f2a93b;
+    --amber-dim: #c98a2c;
+    --cream: #ede9e0;
+    --muted: #8b96a3;
+    --green: #59b894;
+    --red: #d6684c;
+    --focus: #7fd4ff;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(242,169,59,0.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(89,184,148,0.05), transparent 40%);
+    color: var(--cream);
+    font-family: 'Work Sans', sans-serif;
+    line-height: 1.5;
+    padding: 24px 16px 60px;
+  }
+
+  .board{
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header / split-flap title ---------- */
+  header.hero{
+    background: var(--panel);
+    border: 1px solid var(--rail);
+    border-radius: 6px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  header.hero::before{
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: repeating-linear-gradient(90deg, var(--amber) 0 18px, transparent 18px 26px);
+    opacity: 0.7;
+  }
+  .eyebrow{
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+  h1{
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(22px, 5vw, 32px);
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+  }
+  header.hero p{
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 52ch;
+  }
+
+  /* ---------- Reference panel ---------- */
+  details.reference{
+    background: var(--panel);
+    border: 1px solid var(--rail);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    padding: 4px 20px;
+  }
+  details.reference summary{
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: var(--amber);
+    padding: 14px 0;
+    text-transform: uppercase;
+  }
+  details.reference summary:focus-visible{ outline: 2px solid var(--focus); outline-offset: 3px; }
+  .reference-body{
+    padding-bottom: 16px;
+    font-size: 14.5px;
+    color: var(--cream);
+  }
+  .reference-body p{ margin: 0 0 10px; }
+  .reference-body code{
+    font-family: 'Space Mono', monospace;
+    background: var(--panel-alt);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--amber);
+  }
+  .reference-body ul{ margin: 0; padding-left: 20px; color: var(--muted); }
+  .reference-body li{ margin-bottom: 4px; }
+
+  /* ---------- Platform / progress rail ---------- */
+  .platform-strip{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .platform-strip .score{ color: var(--amber); }
+
+  .rail{
+    position: relative;
+    height: 6px;
+    background: var(--rail);
+    border-radius: 3px;
+    margin-bottom: 24px;
+  }
+  .rail-fill{
+    position: absolute;
+    top: 0; left: 0; height: 100%;
+    background: var(--amber);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+  .rail-stations{
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    transform: translateY(-50%);
+  }
+  .rail-stations span{
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--rail);
+  }
+  .rail-stations span.done{ border-color: var(--amber); background: var(--amber); }
+
+  /* ---------- Sentence card ---------- */
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--rail);
+    border-radius: 6px;
+    padding: 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card.flash{ animation: flash-border 0.5s ease; }
+  @keyframes flash-border{
+    0%{ box-shadow: inset 0 0 0 1px var(--rail); }
+    40%{ box-shadow: inset 0 0 0 2px var(--green); }
+    100%{ box-shadow: inset 0 0 0 1px var(--rail); }
+  }
+
+  .confetti-layer{
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 5;
+  }
+  .confetti-piece{
+    position: absolute;
+    top: -20px;
+    width: 9px;
+    height: 13px;
+    border-radius: 2px;
+    opacity: 0.95;
+    animation: confetti-fall 1.3s ease-in forwards;
+  }
+  @keyframes confetti-fall{
+    0%{ transform: translateY(0) rotate(0deg); opacity: 1; }
+    100%{ transform: translateY(340px) rotate(300deg); opacity: 0; }
+  }
+
+  .right-group{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sound-toggle{
+    background: none;
+    border: none;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 2px 4px;
+    transition: color 0.15s ease;
+  }
+  .sound-toggle:hover{ color: var(--amber); }
+  .sound-toggle:focus-visible{ outline: 2px solid var(--focus); outline-offset: 2px; }
+  .card-label{
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--amber-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .answer-strip{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 56px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px dashed var(--rail);
+    border-radius: 5px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .answer-strip.empty::after{
+    content: "Tap words below to build the sentence";
+    color: var(--muted);
+    font-size: 13.5px;
+    font-style: italic;
+    padding: 6px 4px;
+  }
+
+  .bank{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tile{
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    background: var(--panel-alt);
+    color: var(--cream);
+    border: 1px solid var(--rail);
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  }
+  .tile:hover{ border-color: var(--amber-dim); transform: translateY(-1px); }
+  .tile:focus-visible{ outline: 2px solid var(--focus); outline-offset: 2px; }
+  .tile.placed{
+    background: var(--rail);
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+  .tile.hinted{ animation: pulse 0.6s ease; }
+  @keyframes pulse{
+    0%{ box-shadow: 0 0 0 0 rgba(242,169,59,0.6); }
+    100%{ box-shadow: 0 0 0 8px rgba(242,169,59,0); }
+  }
+
+  .controls{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  button.action{
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 18px;
+    border-radius: 4px;
+    border: 1px solid var(--amber);
+    background: transparent;
+    color: var(--amber);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  button.action:hover{ background: var(--amber); color: var(--bg); }
+  button.action:focus-visible{ outline: 2px solid var(--focus); outline-offset: 2px; }
+  button.action.primary{ background: var(--amber); color: var(--bg); }
+  button.action.primary:hover{ background: var(--amber-dim); border-color: var(--amber-dim); }
+  button.action:disabled{ opacity: 0.35; cursor: not-allowed; }
+  button.action.ghost{ border-color: var(--rail); color: var(--muted); }
+  button.action.ghost:hover{ background: var(--rail); color: var(--cream); }
+
+  .status{
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    margin-top: 14px;
+    min-height: 20px;
+  }
+  .status.correct{ color: var(--green); }
+  .status.incorrect{ color: var(--red); }
+
+  /* ---------- Timeline signature element ---------- */
+  .timeline{
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rail);
+    display: none;
+  }
+  .timeline.show{ display: block; }
+  .timeline-track{
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 22px 10px 10px;
+  }
+  .timeline-track::before{
+    content: "";
+    position: absolute;
+    top: 50%; left: 6px; right: 6px;
+    height: 2px;
+    background: var(--rail);
+    transform: translateY(-50%);
+  }
+  .timeline-stop{
+    position: relative;
+    width: 46%;
+    text-align: center;
+  }
+  .timeline-stop .dot{
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--amber);
+    margin: 0 auto 10px;
+    position: relative;
+    z-index: 1;
+    border: 3px solid var(--panel);
+  }
+  .timeline-stop .tag{
+    font-family: 'Space Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--amber-dim);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .timeline-stop .desc{ font-size: 13.5px; color: var(--cream); }
+
+  /* ---------- End screen ---------- */
+  .end-screen{ display: none; text-align: center; padding: 30px 20px; }
+  .end-screen.show{ display: block; }
+  .end-screen .eyebrow{ margin-bottom: 10px; }
+  .end-screen h2{
+    font-family: 'Space Mono', monospace;
+    font-size: 26px;
+    margin: 0 0 10px;
+  }
+  .end-screen p{ color: var(--muted); margin: 0 0 20px; }
+  .big-score{
+    font-family: 'Space Mono', monospace;
+    font-size: 44px;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+
+  /* ---------- Answer key ---------- */
+  .key-toggle{
+    display: block;
+    margin: 26px auto 0;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12.5px;
+    text-decoration: underline;
+    cursor: pointer;
+    text-align: center;
+  }
+  .key-toggle:hover{ color: var(--cream); }
+  .answer-key{
+    display: none;
+    margin-top: 14px;
+    background: var(--panel);
+    border: 1px solid var(--rail);
+    border-radius: 6px;
+    padding: 20px 24px;
+  }
+  .answer-key.show{ display: block; }
+  .answer-key h3{
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin: 0 0 12px;
+  }
+  .answer-key ol{ margin: 0; padding-left: 20px; color: var(--muted); font-size: 14px; }
+  .answer-key li{ margin-bottom: 6px; }
+  .answer-key li span{ color: var(--cream); }
+
+  @media (max-width: 480px){
+    .controls{ flex-direction: column; align-items: stretch; }
+    button.action{ width: 100%; text-align: center; }
+    .timeline-stop .desc{ font-size: 12.5px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="board">
+
+  <header class="hero">
+    <p class="eyebrow">Grammar in transit</p>
+    <h1>Past Perfect Departures</h1>
+    <p>Tap the words below in the correct order to rebuild each sentence. Every sentence describes two past events — the past perfect tells you which one happened first.</p>
+  </header>
+
+  <details class="reference">
+    <summary>Quick reference: past perfect</summary>
+    <div class="reference-body">
+      <p><strong>Form:</strong> <code>had</code> + past participle — e.g. <code>had finished</code>, <code>hadn't seen</code>, <code>Had you traveled...?</code></p>
+      <p><strong>Use:</strong> to show that one past action happened before another past action.</p>
+      <ul>
+        <li>Common signal words: <code>before</code>, <code>after</code>, <code>already</code>, <code>by the time</code>, <code>when</code>, <code>never...until</code></li>
+        <li>The earlier action = past perfect. The later action = simple past.</li>
+      </ul>
+    </div>
+  </details>
+
+  <div class="platform-strip">
+    <span id="platformLabel">Platform 01 / 10</span>
+    <span class="right-group">
+      <button class="sound-toggle" id="soundToggle" aria-label="Mute sound effects">🔊</button>
+      <span class="score" id="scoreLabel">Score: 0</span>
+    </span>
+  </div>
+  <div class="rail">
+    <div class="rail-fill" id="railFill" style="width:0%"></div>
+    <div class="rail-stations" id="railStations"></div>
+  </div>
+
+  <div class="card" id="card">
+    <p class="card-label" id="cardLabel">Sentence 1</p>
+
+    <div class="answer-strip empty" id="answerStrip"></div>
+    <div class="bank" id="bank"></div>
+
+    <div class="controls">
+      <button class="action primary" id="checkBtn">Check sentence</button>
+      <button class="action" id="hintBtn">Hint</button>
+      <button class="action ghost" id="clearBtn">Clear</button>
+      <button class="action" id="nextBtn" style="display:none;">Next sentence &rarr;</button>
+    </div>
+
+    <div class="status" id="status" aria-live="polite"></div>
+
+    <div class="timeline" id="timeline">
+      <div class="timeline-track">
+        <div class="timeline-stop">
+          <span class="tag">Happened first</span>
+          <span class="dot"></span>
+          <span class="desc" id="earlierDesc"></span>
+        </div>
+        <div class="timeline-stop">
+          <span class="tag">Happened next</span>
+          <span class="dot"></span>
+          <span class="desc" id="laterDesc"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card end-screen" id="endScreen">
+    <p class="eyebrow">All aboard</p>
+    <h2>Schedule complete</h2>
+    <div class="big-score" id="finalScore">0</div>
+    <p id="finalMsg">out of 100 points</p>
+    <button class="action primary" id="restartBtn">Run it again</button>
+  </div>
+
+  <button class="key-toggle" id="keyToggle">Show teacher's answer key</button>
+  <div class="answer-key" id="answerKey">
+    <h3>Answer key</h3>
+    <ol id="keyList"></ol>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  const sentences = [
+    {
+      text: "By the time we arrived, the movie had already started.",
+      hint: "This sentence opens with a time expression: 'By the time...'",
+      earlier: "the movie started",
+      later: "we arrived"
+    },
+    {
+      text: "She had never seen snow before she moved to Canada.",
+      hint: "The past perfect clause comes first here.",
+      earlier: "she had never seen snow, up to that point",
+      later: "she moved to Canada"
+    },
+    {
+      text: "He had finished his homework before he ate dinner.",
+      hint: "Which happened first — finishing homework or eating dinner?",
+      earlier: "he finished his homework",
+      later: "he ate dinner"
+    },
+    {
+      text: "They had already left when I got to the party.",
+      hint: "'When' introduces the more recent event.",
+      earlier: "they left",
+      later: "I got to the party"
+    },
+    {
+      text: "I hadn't eaten breakfast before I went to work.",
+      hint: "This is a negative past perfect: hadn't + past participle.",
+      earlier: "I hadn't eaten breakfast, by that point",
+      later: "I went to work"
+    },
+    {
+      text: "Had you ever traveled abroad before this trip?",
+      hint: "Questions with past perfect start with 'Had' + subject.",
+      earlier: "any earlier trips abroad",
+      later: "this trip"
+    },
+    {
+      text: "We had lived in that house for ten years before we moved.",
+      hint: "'For ten years' shows how long the earlier action lasted.",
+      earlier: "living in that house, for ten years",
+      later: "we moved"
+    },
+    {
+      text: "By the time the police arrived, the thief had escaped.",
+      hint: "The comma splits the two events — which one is past perfect?",
+      earlier: "the thief escaped",
+      later: "the police arrived"
+    },
+    {
+      text: "She realized that she had forgotten her keys.",
+      hint: "The past perfect clause explains what happened earlier.",
+      earlier: "she forgot her keys",
+      later: "she realized it"
+    },
+    {
+      text: "After they had finished the meeting, they went to lunch.",
+      hint: "'After' introduces the earlier, completed action.",
+      earlier: "they finished the meeting",
+      later: "they went to lunch"
+    }
+  ];
+
+  // --- State ---
+  let order = [];        // shuffled sentence indices
+  let current = 0;       // position in `order`
+  let score = 0;
+  let bankTiles = [];    // {id, text}
+  let answerTiles = [];  // {id, text}
+  let solved = false;
+  let hintsUsedThisSentence = 0;
+  let wrongChecksThisSentence = 0;
+
+  // --- Elements ---
+  const platformLabel = document.getElementById('platformLabel');
+  const scoreLabel = document.getElementById('scoreLabel');
+  const railFill = document.getElementById('railFill');
+  const railStations = document.getElementById('railStations');
+  const cardLabel = document.getElementById('cardLabel');
+  const answerStrip = document.getElementById('answerStrip');
+  const bankEl = document.getElementById('bank');
+  const checkBtn = document.getElementById('checkBtn');
+  const hintBtn = document.getElementById('hintBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const statusEl = document.getElementById('status');
+  const timelineEl = document.getElementById('timeline');
+  const earlierDesc = document.getElementById('earlierDesc');
+  const laterDesc = document.getElementById('laterDesc');
+  const card = document.getElementById('card');
+  const endScreen = document.getElementById('endScreen');
+  const finalScore = document.getElementById('finalScore');
+  const finalMsg = document.getElementById('finalMsg');
+  const restartBtn = document.getElementById('restartBtn');
+  const keyToggle = document.getElementById('keyToggle');
+  const answerKey = document.getElementById('answerKey');
+  const keyList = document.getElementById('keyList');
+  const soundToggle = document.getElementById('soundToggle');
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let soundEnabled = true;
+  let audioCtx = null;
+
+  function getAudioCtx(){
+    if(!audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return null;
+      audioCtx = new Ctx();
+    }
+    if(audioCtx.state === 'suspended'){
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, type, startTime, gainVal){
+    if(!soundEnabled) return;
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    const t = ctx.currentTime + (startTime || 0);
+    const g = gainVal || 0.14;
+    gain.gain.setValueAtTime(g, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + duration + 0.02);
+  }
+
+  function soundPlace(){ playTone(520, 0.08, 'sine'); }
+  function soundRemove(){ playTone(330, 0.07, 'sine'); }
+  function soundHint(){ playTone(440, 0.14, 'triangle'); }
+  function soundIncorrect(){ playTone(150, 0.28, 'sawtooth', 0, 0.1); }
+  function soundCorrect(){
+    playTone(523.25, 0.16, 'sine', 0);
+    playTone(659.25, 0.16, 'sine', 0.12);
+    playTone(783.99, 0.28, 'sine', 0.24);
+  }
+
+  soundToggle.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
+    soundToggle.setAttribute('aria-label', soundEnabled ? 'Mute sound effects' : 'Unmute sound effects');
+  });
+
+  function celebrate(){
+    card.classList.add('flash');
+    setTimeout(() => card.classList.remove('flash'), 550);
+    if(reducedMotion) return;
+    const layer = document.createElement('div');
+    layer.className = 'confetti-layer';
+    card.appendChild(layer);
+    const colors = ['#f2a93b', '#59b894', '#ede9e0', '#d6684c'];
+    const pieceCount = 26;
+    for(let i = 0; i < pieceCount; i++){
+      const piece = document.createElement('span');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDuration = (0.9 + Math.random() * 0.6) + 's';
+      piece.style.animationDelay = (Math.random() * 0.2) + 's';
+      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+      layer.appendChild(piece);
+    }
+    setTimeout(() => layer.remove(), 1700);
+  }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function tokenize(text){
+    return text.split(' ');
+  }
+
+  function buildStations(){
+    railStations.innerHTML = '';
+    sentences.forEach((_, i) => {
+      const s = document.createElement('span');
+      if(i < current) s.classList.add('done');
+      railStations.appendChild(s);
+    });
+  }
+
+  function updateProgressUI(){
+    platformLabel.textContent = `Platform ${String(current+1).padStart(2,'0')} / ${sentences.length}`;
+    scoreLabel.textContent = `Score: ${score}`;
+    railFill.style.width = `${(current / sentences.length) * 100}%`;
+    buildStations();
+  }
+
+  function loadSentence(){
+    solved = false;
+    hintsUsedThisSentence = 0;
+    wrongChecksThisSentence = 0;
+    timelineEl.classList.remove('show');
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+    nextBtn.style.display = 'none';
+    checkBtn.disabled = false;
+    hintBtn.disabled = false;
+
+    const sentenceIndex = order[current];
+    const tokens = tokenize(sentences[sentenceIndex].text);
+    const tileObjs = tokens.map((t, i) => ({ id: i, text: t }));
+
+    let shuffled = shuffle(tileObjs);
+    // avoid the shuffle landing on the exact original order for sentences with 3+ words
+    if(tokens.length > 2){
+      let attempts = 0;
+      while(shuffled.every((t, i) => t.id === i) && attempts < 10){
+        shuffled = shuffle(tileObjs);
+        attempts++;
+      }
+    }
+
+    bankTiles = shuffled;
+    answerTiles = [];
+
+    cardLabel.textContent = `Sentence ${current + 1}`;
+    updateProgressUI();
+    render();
+  }
+
+  function render(){
+    // answer strip
+    answerStrip.innerHTML = '';
+    if(answerTiles.length === 0){
+      answerStrip.classList.add('empty');
+    } else {
+      answerStrip.classList.remove('empty');
+      answerTiles.forEach(tile => {
+        const btn = document.createElement('button');
+        btn.className = 'tile placed';
+        btn.textContent = tile.text;
+        btn.setAttribute('aria-label', `Remove "${tile.text}" from sentence`);
+        btn.addEventListener('click', () => moveToBank(tile.id));
+        answerStrip.appendChild(btn);
+      });
+    }
+
+    // bank
+    bankEl.innerHTML = '';
+    bankTiles.forEach(tile => {
+      const btn = document.createElement('button');
+      btn.className = 'tile';
+      btn.textContent = tile.text;
+      btn.setAttribute('aria-label', `Add "${tile.text}" to sentence`);
+      btn.addEventListener('click', () => moveToAnswer(tile.id));
+      bankEl.appendChild(btn);
+    });
+  }
+
+  function moveToAnswer(id){
+    if(solved) return;
+    const idx = bankTiles.findIndex(t => t.id === id);
+    if(idx === -1) return;
+    const [tile] = bankTiles.splice(idx, 1);
+    answerTiles.push(tile);
+    soundPlace();
+    render();
+  }
+
+  function moveToBank(id){
+    if(solved) return;
+    const idx = answerTiles.findIndex(t => t.id === id);
+    if(idx === -1) return;
+    const [tile] = answerTiles.splice(idx, 1);
+    bankTiles.push(tile);
+    soundRemove();
+    render();
+  }
+
+  function isCorrectOrder(){
+    if(answerTiles.length !== bankTiles.length + answerTiles.length) return false;
+    return answerTiles.every((t, i) => t.id === i) && bankTiles.length === 0;
+  }
+
+  checkBtn.addEventListener('click', () => {
+    const totalTiles = answerTiles.length + bankTiles.length;
+    if(answerTiles.length < totalTiles){
+      statusEl.textContent = 'Signal hold — place all the words first.';
+      statusEl.className = 'status incorrect';
+      return;
+    }
+    const correct = answerTiles.every((t, i) => t.id === i);
+    if(correct){
+      solved = true;
+      const sentenceIndex = order[current];
+      const points = Math.max(2, 10 - (hintsUsedThisSentence * 2) - wrongChecksThisSentence);
+      score += points;
+      statusEl.textContent = `On time ✓ — +${points} points`;
+      statusEl.className = 'status correct';
+      earlierDesc.textContent = sentences[sentenceIndex].earlier;
+      laterDesc.textContent = sentences[sentenceIndex].later;
+      timelineEl.classList.add('show');
+      checkBtn.disabled = true;
+      hintBtn.disabled = true;
+      nextBtn.style.display = 'inline-block';
+      updateProgressUI();
+      soundCorrect();
+      celebrate();
+    } else {
+      wrongChecksThisSentence++;
+      statusEl.textContent = 'Signal hold — the word order isn\'t quite right yet.';
+      statusEl.className = 'status incorrect';
+      soundIncorrect();
+    }
+  });
+
+  hintBtn.addEventListener('click', () => {
+    if(solved) return;
+    hintsUsedThisSentence++;
+
+    // keep the longest correct prefix, return the rest to the bank
+    let correctPrefixLen = 0;
+    while(correctPrefixLen < answerTiles.length && answerTiles[correctPrefixLen].id === correctPrefixLen){
+      correctPrefixLen++;
+    }
+    const overflow = answerTiles.splice(correctPrefixLen);
+    bankTiles = bankTiles.concat(overflow);
+
+    const neededId = correctPrefixLen;
+    const idx = bankTiles.findIndex(t => t.id === neededId);
+    if(idx !== -1){
+      const [tile] = bankTiles.splice(idx, 1);
+      answerTiles.push(tile);
+    }
+    render();
+
+    const sentenceIndex = order[current];
+    statusEl.textContent = sentences[sentenceIndex].hint;
+    statusEl.className = 'status';
+    soundHint();
+
+    // brief pulse on the newly placed tile
+    const placedButtons = answerStrip.querySelectorAll('.tile');
+    if(placedButtons.length){
+      const last = placedButtons[placedButtons.length - 1];
+      last.classList.add('hinted');
+      setTimeout(() => last.classList.remove('hinted'), 650);
+    }
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if(solved) return;
+    bankTiles = bankTiles.concat(answerTiles);
+    answerTiles = [];
+    render();
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+  });
+
+  nextBtn.addEventListener('click', () => {
+    current++;
+    if(current >= sentences.length){
+      showEndScreen();
+    } else {
+      loadSentence();
+    }
+  });
+
+  function showEndScreen(){
+    card.style.display = 'none';
+    endScreen.classList.add('show');
+    finalScore.textContent = score;
+    finalMsg.textContent = `out of ${sentences.length * 10} points`;
+    platformLabel.textContent = `Platform ${sentences.length} / ${sentences.length}`;
+    railFill.style.width = '100%';
+    current = sentences.length;
+    buildStations();
+  }
+
+  restartBtn.addEventListener('click', () => {
+    startGame();
+  });
+
+  keyToggle.addEventListener('click', () => {
+    const isShown = answerKey.classList.toggle('show');
+    keyToggle.textContent = isShown ? 'Hide teacher\'s answer key' : 'Show teacher\'s answer key';
+  });
+
+  function buildAnswerKey(){
+    keyList.innerHTML = '';
+    sentences.forEach(s => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${s.text}</span>`;
+      keyList.appendChild(li);
+    });
+  }
+
+  function startGame(){
+    order = shuffle(sentences.map((_, i) => i));
+    current = 0;
+    score = 0;
+    card.style.display = 'block';
+    endScreen.classList.remove('show');
+    loadSentence();
+  }
+
+  buildAnswerKey();
+  startGame();
+
+})();
+</script>
+
+</body>
+</html>
