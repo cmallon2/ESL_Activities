@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Passport Partners: Intermediate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EFEAE8; --chrome:#4A1624; --chrome-ink:#F5EEE2; --text:#2A1E22; --muted:#6A5A5F;
+  --paper:#F3F0E8; --paper-2:#E9E4D8; --ink:#2A1E22; --ink-soft:#64555A; --accent:#6B2234; --accent-dark:#561A29;
+  --stamp:#A62B2B; --ok:#2B7647; --gold:#B8893A; --gold-soft:#E6CB8E; --field:#FFFFFF; --rule:#D3C9BA;
+  --display:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"OCR A Std","OCR A Extended","Courier New",ui-monospace,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#1A1013; --chrome:#100709; --text:#EEE4E6; --muted:#B4A3A8; color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --bg:#1A1013; --chrome:#100709; --text:#EEE4E6; --muted:#B4A3A8; color-scheme:dark; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+body{ margin:0; background:var(--bg); color:var(--text); font-family:var(--body); font-size:1.0625rem; line-height:1.5; }
+img,svg{ max-width:100%; }
+button,input,select{ font:inherit; color:inherit; }
+:focus-visible{ outline:3px solid var(--gold); outline-offset:2px; }
+[hidden]{ display:none !important; }
+
+.topbar{ background:var(--chrome); color:var(--chrome-ink); display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.7rem 1.25rem; }
+.brand{ display:flex; align-items:center; gap:.6rem; background:none; border:0; cursor:pointer; padding:.2rem; color:inherit; text-align:left; }
+.brand span{ font-family:var(--display); font-weight:800; font-size:1.2rem; letter-spacing:-.01em; }
+.brand small{ display:block; font-family:var(--body); font-weight:700; font-size:.8rem; color:var(--gold-soft); }
+.ghost{ background:transparent; border:1px solid rgba(245,238,226,.35); color:var(--chrome-ink); border-radius:8px; padding:.35rem .75rem; cursor:pointer; font-size:.95rem; }
+.ghost:hover{ border-color:var(--chrome-ink); }
+
+main{ max-width:1160px; margin:0 auto; padding:1.75rem 1.25rem 4rem; }
+h1,h2,h3{ font-family:var(--display); line-height:1.1; margin:0; letter-spacing:-.015em; }
+h1{ font-size:clamp(2.4rem,6vw,4rem); font-weight:800; }
+h2{ font-size:1.6rem; font-weight:800; }
+h3{ font-size:1.15rem; font-weight:600; }
+.lede{ font-size:1.2rem; color:var(--muted); max-width:36ch; margin:.9rem 0 1.6rem; }
+
+.btn{ display:inline-flex; align-items:center; justify-content:center; gap:.4rem; border-radius:10px; padding:.75rem 1.2rem; font-weight:700; cursor:pointer; border:2px solid var(--accent); min-height:48px; }
+.btn-primary{ background:var(--accent); color:#FBF6EC; }
+.btn-primary:hover{ background:var(--accent-dark); }
+.btn-secondary{ background:transparent; color:var(--accent); }
+.on-page .btn-secondary{ color:var(--text); border-color:currentColor; }
+.btn-secondary:hover{ background:rgba(107,34,52,.08); }
+.on-page .panel .btn-secondary{ color:var(--accent); border-color:var(--accent); }
+.on-page .panel .toggle{ color:var(--ink); }
+.btn-small{ min-height:38px; padding:.4rem .8rem; font-size:.95rem; }
+.linklike{ background:none; border:0; padding:0; color:var(--accent); text-decoration:underline; text-underline-offset:3px; cursor:pointer; font-weight:700; }
+
+.home{ display:grid; grid-template-columns:1fr 1fr; gap:2.5rem; align-items:center; min-height:60vh; }
+.home-actions{ display:flex; flex-wrap:wrap; gap:.75rem; }
+.sample{ display:flex; flex-direction:column; align-items:center; gap:.9rem; }
+.sample-frame{ width:100%; max-width:480px; max-height:520px; overflow:hidden; border-radius:14px; transform:rotate(-2deg); box-shadow:0 18px 40px -18px rgba(40,10,20,.55); -webkit-mask-image:linear-gradient(#000 78%,transparent); mask-image:linear-gradient(#000 78%,transparent); }
+
+.panel{ background:var(--paper); color:var(--ink); border-radius:8px; padding:1.4rem; border:1px solid var(--rule); position:relative; }
+.panel .muted{ color:var(--ink-soft); }
+.panel label, .panel legend{ font-weight:700; }
+.panel input[type=text], .panel input[type=number], .panel select{
+  width:100%; background:var(--field); color:var(--ink); border:2px solid var(--rule); border-radius:8px; padding:.6rem .7rem; min-height:46px;
+}
+.panel input:focus, .panel select:focus{ border-color:var(--accent); outline:none; box-shadow:0 0 0 3px rgba(107,34,52,.16); }
+
+.join{ max-width:520px; margin:1rem auto; }
+.join .code-input{ font-family:var(--mono); font-size:1.6rem; letter-spacing:.08em; text-transform:uppercase; text-align:center; }
+.role-choice{ display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-top:.6rem; }
+.role-choice .btn{ min-height:72px; font-size:1.15rem; }
+.error{ color:var(--stamp); font-weight:700; min-height:1.5em; margin:.5rem 0 0; }
+
+.student-bar{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:1.25rem; }
+.student-bar p{ margin:0; }
+.pill{ font-family:var(--mono); background:var(--chrome); color:var(--chrome-ink); padding:.15rem .55rem; border-radius:6px; letter-spacing:.05em; }
+.student-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1.75rem; align-items:start; }
+.col-head{ margin-bottom:.7rem; }
+.col-head p{ margin:.25rem 0 0; color:var(--muted); }
+.toggle{ display:inline-flex; align-items:center; gap:.5rem; margin:.8rem 1rem 0 0; cursor:pointer; font-weight:700; }
+.toggle input{ width:22px; height:22px; accent-color:var(--accent); }
+.on-page .toggle{ color:var(--text); }
+.sticky-card{ position:sticky; top:calc(env(safe-area-inset-top,0px) + 1rem); }
+
+/* card */
+.passport{
+  background:
+    repeating-radial-gradient(circle at 0% 0%, transparent 0 12px, rgba(107,34,52,.05) 12px 13px),
+    repeating-radial-gradient(circle at 100% 100%, transparent 0 15px, rgba(184,137,58,.08) 15px 16px),
+    var(--paper);
+  color:var(--ink); border-radius:14px; border:1px solid var(--rule); overflow:hidden; width:100%;
+}
+.pp-head{ display:flex; justify-content:space-between; align-items:baseline; padding:.75rem 1.1rem; background:var(--accent); color:#FBF6EC; }
+.pp-title{ font-family:var(--display); font-weight:800; font-size:1.05rem; }
+.pp-role{ font-size:.95rem; color:var(--gold-soft); font-weight:700; }
+.pp-id{ display:grid; grid-template-columns:96px 1fr; gap:1rem; padding:1.1rem 1.1rem .4rem; align-items:center; }
+.pp-photo{ border-radius:6px; overflow:hidden; border:3px solid #fff; line-height:0; background:#E6E1D3; }
+.pp-name{ font-family:var(--display); font-weight:800; font-size:1.5rem; line-height:1.1; }
+.pp-age{ color:var(--ink-soft); font-weight:700; margin-top:.2rem; }
+.pp-sec{ padding:.7rem 1.1rem .9rem; }
+.pp-sec + .pp-sec{ border-top:1px dashed var(--rule); }
+.pp-sec h3{ color:var(--accent); margin-bottom:.5rem; }
+.pp-fields{ margin:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:.55rem 1rem; }
+.pp-f dt{ font-size:.82rem; color:var(--ink-soft); font-weight:700; }
+.pp-f dd{ margin:0; font-size:1.05rem; font-weight:700; overflow-wrap:anywhere; }
+.pp-f.lie{ grid-column:1 / -1; background:rgba(166,43,43,.08); border:2px dashed var(--stamp); border-radius:8px; padding:.45rem .6rem; }
+.lie-tag{ display:block; color:var(--stamp); font-size:.88rem; font-weight:700; margin-top:.15rem; }
+.frame{ display:none; margin:.1rem 0 0; font-size:.92rem; color:var(--accent); font-style:italic; }
+.show-frames .frame{ display:block; }
+.pp-mrz{ font-family:var(--mono); font-size:.82rem; letter-spacing:.12em; padding:.55rem 1.1rem .7rem; background:var(--paper-2); border-top:1px dashed var(--rule); color:#5A4A4F; overflow-x:auto; white-space:nowrap; }
+
+/* partner form */
+.pf-head{ padding-right:120px; }
+.pf-sec{ margin-top:1.3rem; }
+.pf-sec > h3{ color:var(--accent); padding-bottom:.35rem; border-bottom:2px solid var(--rule); }
+.pf-rows{ display:grid; gap:.7rem; margin-top:.7rem; }
+.pf-row{ display:grid; grid-template-columns:1fr auto; gap:.15rem .6rem; align-items:end; padding:.55rem .7rem; border-radius:8px; border:2px solid transparent; }
+.pf-row > label, .pf-row > .lbl{ grid-column:1 / -1; font-weight:700; }
+.ask{ display:none; grid-column:1 / -1; margin:0 0 .25rem; color:var(--accent); font-size:.95rem; }
+.ask .fu{ display:block; color:var(--ink-soft); }
+.show-asks .ask{ display:block; }
+.pf-inputs{ display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+.pf-inputs > input, .pf-inputs > select{ flex:1 1 200px; }
+.radios{ display:flex; gap:.4rem; flex-wrap:wrap; }
+.radios label{ display:inline-flex; align-items:center; gap:.4rem; border:2px solid var(--rule); background:var(--field); border-radius:8px; padding:.45rem .8rem; cursor:pointer; font-weight:700; min-height:44px; }
+.radios label:has(input:checked){ border-color:var(--accent); background:rgba(107,34,52,.08); }
+.radios input{ accent-color:var(--accent); width:18px; height:18px; margin:0; }
+.notes{ flex:1 1 180px !important; }
+.mark{ width:34px; height:34px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:1.1rem; align-self:center; }
+.pf-row.ok{ border-color:rgba(43,118,71,.45); background:rgba(43,118,71,.07); }
+.pf-row.ok .mark{ background:var(--ok); color:#fff; }
+.pf-row.bad{ border-color:rgba(166,43,43,.45); background:rgba(166,43,43,.06); }
+.pf-row.bad .mark{ background:var(--stamp); color:#fff; }
+.answer{ grid-column:1 / -1; margin:.2rem 0 0; font-weight:700; color:var(--stamp); }
+.pf-row.lie-row{ background:rgba(184,137,58,.12); border-color:rgba(184,137,58,.5); }
+.pf-actions{ display:flex; flex-wrap:wrap; gap:.6rem; margin-top:1.3rem; }
+.stamp{ position:absolute; top:.7rem; right:.9rem; width:104px; height:104px; border-radius:50%; border:4px double var(--stamp); color:var(--stamp); display:grid; place-content:center; text-align:center; transform:rotate(-10deg); opacity:.9; pointer-events:none; background:rgba(243,240,232,.65); }
+.stamp.perfect{ border-color:var(--ok); color:var(--ok); }
+.stamp-score{ font-family:var(--display); font-weight:800; font-size:1.6rem; line-height:1; }
+.stamp-word{ font-size:.8rem; font-weight:700; margin-top:.2rem; }
+.stamp.thud{ animation:thud .38s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes thud{ from{ transform:scale(1.9) rotate(-22deg); opacity:0; } to{ transform:scale(1) rotate(-10deg); opacity:.9; } }
+.secret{ margin:.6rem 0 0; font-weight:700; color:var(--stamp); font-size:.95rem; }
+.tip{ margin:.4rem 0 0; color:var(--muted); font-size:.95rem; }
+
+/* teacher */
+.teacher-grid{ display:grid; grid-template-columns:minmax(0,400px) minmax(0,1fr); gap:1.75rem; align-items:start; }
+fieldset{ border:0; padding:0; margin:0 0 1.1rem; }
+.opt{ display:flex; gap:.6rem; align-items:flex-start; padding:.55rem .6rem; border-radius:8px; cursor:pointer; border:2px solid transparent; font-weight:400 !important; }
+.opt:has(input:checked){ border-color:var(--accent); background:rgba(107,34,52,.06); }
+.opt input{ margin-top:.3rem; accent-color:var(--accent); width:18px; height:18px; flex:none; }
+.opt b{ display:block; }
+.opt small{ color:var(--ink-soft); font-size:.92rem; display:block; }
+.steps{ margin:1.2rem 0 0; padding-left:1.3rem; color:var(--ink-soft); }
+.steps li{ margin:.3rem 0; }
+.codes{ display:grid; gap:.6rem; margin-top:1rem; }
+.code-row{ background:var(--paper); color:var(--ink); border:1px solid var(--rule); border-radius:8px; padding:.7rem 1rem; }
+.code-row summary{ cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:1rem; list-style:none; }
+.code-row summary::-webkit-details-marker{ display:none; }
+.code-row .big{ font-family:var(--mono); font-size:1.35rem; letter-spacing:.08em; font-weight:700; }
+.code-row .reveal{ color:var(--accent); font-weight:700; font-size:.95rem; }
+.code-row[open] .reveal-show{ display:none; }
+.code-row:not([open]) .reveal-hide{ display:none; }
+.key-wrap{ overflow-x:auto; margin-top:.7rem; }
+.key{ border-collapse:collapse; width:100%; font-size:.93rem; min-width:480px; }
+.key th,.key td{ text-align:left; padding:.35rem .5rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+.key thead th{ color:var(--accent); }
+.key tbody th{ color:var(--ink-soft); font-weight:700; width:28%; }
+.key .sec-row th{ color:var(--accent); padding-top:.7rem; }
+.key .lie-cell{ color:var(--stamp); font-weight:700; }
+.empty{ color:var(--muted); margin-top:1rem; }
+.results-head{ display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; justify-content:space-between; }
+
+#printArea{ display:none; }
+
+@media (max-width: 900px){
+  .home,.student-grid,.teacher-grid{ grid-template-columns:1fr; }
+  .home{ min-height:auto; }
+  .sticky-card{ position:static; }
+}
+@media (max-width: 460px){
+  .pp-id{ grid-template-columns:76px 1fr; }
+  .pf-head{ padding-right:96px; }
+  .stamp{ width:84px; height:84px; }
+  .stamp-score{ font-size:1.25rem; }
+}
+@media (prefers-reduced-motion: reduce){ .stamp.thud{ animation:none; } }
+
+@media print{
+  :root{ padding:0; }
+  body{ background:#fff; }
+  .topbar, main{ display:none !important; }
+  #printArea{ display:block; color:#000; }
+  .print-sheet{ page-break-after:always; break-after:page; }
+  .print-sheet > h3{ margin:0 0 .5rem; font-size:14pt; }
+  .print-sheet .passport{ border:1.5px solid #333; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .print-table{ width:100%; border-collapse:collapse; margin-top:.6rem; font-size:10.5pt; }
+  .print-table th{ text-align:left; width:38%; padding:.45rem .4rem; vertical-align:bottom; }
+  .print-table th small{ display:block; font-weight:400; color:#444; font-style:italic; }
+  .print-table td{ border-bottom:1px solid #555; }
+  .print-table .sec th{ padding-top:.8rem; font-size:11.5pt; border:0; }
+  .partner-page{ break-before:page; page-break-before:always; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <button class="brand" id="homeBtn" aria-label="Passport Partners Intermediate home">
+    <svg width="28" height="34" viewBox="0 0 28 34" aria-hidden="true"><rect x="1" y="1" width="26" height="32" rx="3" fill="none" stroke="#E6CB8E" stroke-width="2"/><circle cx="14" cy="15" r="6.5" fill="none" stroke="#E6CB8E" stroke-width="1.6"/><path d="M7.5 15h13M14 8.5c-3 3.5-3 9.5 0 13M14 8.5c3 3.5 3 9.5 0 13" fill="none" stroke="#E6CB8E" stroke-width="1.2"/><path d="M8 27h12" stroke="#E6CB8E" stroke-width="1.6"/></svg>
+    <span>Passport Partners<small>Intermediate</small></span>
+  </button>
+  <button class="ghost" id="soundBtn" aria-pressed="true">Sound on</button>
+</header>
+
+<main>
+  <section data-screen="home" class="home on-page">
+    <div>
+      <h1>Get the whole story.</h1>
+      <p class="lede">You have a secret life story. So does your partner. Ask questions, ask follow-up questions, and find out who they really are.</p>
+      <div class="home-actions">
+        <button class="btn btn-primary" data-go="join">I'm a student</button>
+        <button class="btn btn-secondary" data-go="teacher">I'm the teacher</button>
+      </div>
+    </div>
+    <div class="sample">
+      <div class="sample-frame" id="sampleCard"></div>
+      <button class="btn btn-secondary btn-small" id="sampleBtn">Show another person</button>
+    </div>
+  </section>
+
+  <section data-screen="join" hidden>
+    <div class="panel join">
+      <h2>Join your pair</h2>
+      <p class="muted">Type the code your teacher gave you. Your partner types the same code.</p>
+      <label for="codeInput">Pair code</label>
+      <input type="text" id="codeInput" class="code-input" placeholder="OTTER-352" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <p style="margin:1rem 0 0;font-weight:700">Are you Student A or Student B?</p>
+      <div class="role-choice">
+        <button class="btn btn-primary" data-role="A">Student A</button>
+        <button class="btn btn-primary" data-role="B">Student B</button>
+      </div>
+      <p class="error" id="joinError" role="alert"></p>
+      <p class="muted" style="margin:.3rem 0 0">No code? <button class="linklike" id="practiceBtn">Make a practice code</button></p>
+    </div>
+  </section>
+
+  <section data-screen="student" hidden class="on-page">
+    <div class="student-bar">
+      <p>Pair code <span class="pill" id="barCode"></span>, you are <strong id="barRole"></strong></p>
+      <button class="btn btn-secondary btn-small" data-go="join">Change code</button>
+    </div>
+    <div class="student-grid">
+      <div class="sticky-card">
+        <div class="col-head">
+          <h2>This is you</h2>
+          <p>Your card has notes, not sentences. Answer in full sentences, and add extra details.</p>
+        </div>
+        <div id="myCardWrap"></div>
+        <p class="secret" id="secretNote">Keep your card secret. Don't show your partner!</p>
+        <label class="toggle"><input type="checkbox" id="framesToggle"> Show example answers</label>
+      </div>
+      <div>
+        <div class="panel" id="partnerPanel">
+          <div class="pf-head">
+            <h2>Your partner</h2>
+            <p class="muted" style="margin:.25rem 0 0">Ask the question, then a follow-up question. Write short notes.</p>
+          </div>
+          <div class="stamp" id="stamp" hidden></div>
+          <label class="toggle"><input type="checkbox" id="asksToggle" checked> Show questions</label>
+          <div id="pfBody" class="show-asks"></div>
+          <div class="pf-actions">
+            <button class="btn btn-primary" id="checkBtn">Check my answers</button>
+            <button class="btn btn-secondary" id="revealBtn" hidden>Show correct answers</button>
+          </div>
+          <p class="muted" id="checkMsg" aria-live="polite" style="margin:.8rem 0 0"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-screen="teacher" hidden class="on-page">
+    <div class="teacher-grid">
+      <div class="panel">
+        <h2>Set up the class</h2>
+        <fieldset style="margin-top:1rem">
+          <legend>Topics (choose one or more)</legend>
+          <label class="opt"><input type="checkbox" name="mod" value="1" checked><span><b>Life and work</b><small>Where were you born? How long have you lived there? Why did you move? Best and worst thing about your job. <em>Present perfect with for and since, past simple.</em></small></span></label>
+          <label class="opt"><input type="checkbox" name="mod" value="2" checked><span><b>Travel and experiences</b><small>Your last holiday, and "Have you ever...?" with follow-up questions. <em>Past simple compared with present perfect.</em></small></span></label>
+          <label class="opt"><input type="checkbox" name="mod" value="4"><span><b>Habits and the future</b><small>How often...? Plans for next year, "Would you rather...?" and "If you won a lot of money...". <em>Frequency, going to, would rather, second conditional.</em></small></span></label>
+        </fieldset>
+        <fieldset>
+          <legend>Extra challenge</legend>
+          <label class="opt"><input type="checkbox" id="lieMode"><span><b>Spot the lie</b><small>One answer on each card is a lie. Students ask follow-up questions to find it.</small></span></label>
+        </fieldset>
+        <label for="pairCount">How many pairs?</label>
+        <input type="number" id="pairCount" min="1" max="20" value="8">
+        <p class="error" id="teacherError" role="alert"></p>
+        <button class="btn btn-primary" id="makeCodes" style="width:100%">Make pair codes</button>
+        <ol class="steps">
+          <li>Choose topics and how many pairs you need.</li>
+          <li>Give each pair one code. One student is A, the other is B.</li>
+          <li>Students type the code on this page and choose A or B.</li>
+          <li>They take turns interviewing each other, then press "Check my answers".</li>
+        </ol>
+      </div>
+      <div>
+        <div class="results-head">
+          <h2>Pair codes</h2>
+          <button class="btn btn-secondary btn-small" id="printBtn" hidden>Print paper cards</button>
+        </div>
+        <p class="empty" id="codesEmpty">Make codes to see them here. Each code has a hidden answer key.</p>
+        <div class="codes" id="codes"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="printArea" aria-hidden="true"></div>
+
+<script>
+(function(){
+"use strict";
+const YEAR=new Date().getFullYear();
+
+/* ---------- helpers ---------- */
+function squash(s){ return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,""); }
+function words(s){ return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9\s]/g," ").split(/\s+/).filter(Boolean); }
+function esc(s){ return String(s).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function article(w){ return /^[aeiou]/i.test(w)?"an":"a"; }
+const hasKw=(v,keys)=>{ const s=squash(v); return s.length>0&&keys.some(k=>s.includes(squash(k))); };
+const NUMW=["zero","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen","twenty"];
+function wordsToDigits(v){ let s=" "+String(v).toLowerCase()+" "; NUMW.forEach((w,i)=>{ s=s.replace(new RegExp("\\b"+w+"\\b","g"),String(i)); }); return s; }
+function numsIn(v){ return (wordsToDigits(v).match(/\d+/g)||[]).map(Number); }
+function parseTime(v){
+  const s=wordsToDigits(v); let m;
+  if((m=s.match(/half past (\d{1,2})/))) return [+m[1]%12,30];
+  if((m=s.match(/quarter past (\d{1,2})/))) return [+m[1]%12,15];
+  if((m=s.match(/quarter to (\d{1,2})/))) return [(+m[1]+11)%12,45];
+  if((m=s.match(/(\d{1,2})\s*[:.h]\s*(\d{2})/))) return [+m[1]%12,+m[2]];
+  if((m=s.match(/\b(\d{1,2})\s+(\d{2})\b/))) return [+m[1]%12,+m[2]];
+  if((m=s.match(/\b(\d)(\d{2})\b/))) return [+m[1]%12,+m[2]];
+  if((m=s.match(/\b(\d{1,2})\b/))) return [+m[1]%12,0];
+  return null;
+}
+function timeDigits(t){ return t[0]+":"+String(t[1]).padStart(2,"0"); }
+function timeWords(t){ const h=t[0], m=t[1]; if(m===0) return NUMW[h]+" o'clock"; if(m===15) return "quarter past "+NUMW[h]; if(m===30) return "half past "+NUMW[h]; return "quarter to "+NUMW[h%12+1]; }
+function xmur3(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return function(){ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; }; }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const pick=(r,arr)=>arr[Math.floor(r()*arr.length)];
+const int=(r,a,b)=>a+Math.floor(r()*(b-a+1));
+function pickN(r,n,count){ const idx=Array.from({length:n},(_,i)=>i); for(let i=n-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } return idx.slice(0,count); }
+function keyOf(x){ return (x&&typeof x==="object")?(x.d||x.n):x; }
+function pickOther(r,arr,current){ const k=keyOf(current), opts=arr.filter(x=>keyOf(x)!==k); return pick(r,opts.length?opts:arr); }
+
+/* ---------- data ---------- */
+const COUNTRIES=[
+ {n:"Japan",c:"JPN",cities:["Tokyo","Osaka","Kyoto"],first:["Yuki","Kenji","Haruka","Sora","Aiko"],last:["Tanaka","Sato","Suzuki","Ito"]},
+ {n:"Brazil",c:"BRA",cities:["Recife","Salvador","Curitiba"],first:["Lucas","Ana","Mateus","Julia","Rafael"],last:["Silva","Costa","Souza","Lima"]},
+ {n:"Mexico",c:"MEX",cities:["Monterrey","Puebla","Oaxaca"],first:["Diego","Sofia","Carlos","Lucia","Mateo"],last:["Garcia","Lopez","Torres","Ramirez"]},
+ {n:"Canada",c:"CAN",cities:["Toronto","Vancouver","Ottawa"],first:["Emma","Liam","Noah","Olivia","Ryan"],last:["Brown","Martin","Roy","Wilson"]},
+ {n:"Australia",c:"AUS",cities:["Sydney","Perth","Melbourne"],first:["Jack","Ruby","Mia","Oscar","Zoe"],last:["Taylor","Walker","Kelly"]},
+ {n:"Egypt",c:"EGY",cities:["Cairo","Luxor","Giza"],first:["Omar","Nour","Karim","Layla","Youssef"],last:["Hassan","Farouk","Said"]},
+ {n:"India",c:"IND",cities:["Mumbai","Delhi","Chennai"],first:["Priya","Arjun","Ravi","Anika","Neha"],last:["Patel","Sharma","Gupta","Singh"]},
+ {n:"Italy",c:"ITA",cities:["Rome","Milan","Naples"],first:["Marco","Giulia","Luca","Chiara","Paolo"],last:["Rossi","Bianchi","Romano","Conti"]},
+ {n:"Kenya",c:"KEN",cities:["Nairobi","Mombasa","Kisumu"],first:["Amani","Baraka","Zawadi","Juma","Neema"],last:["Otieno","Kamau","Mwangi"]},
+ {n:"South Korea",c:"KOR",al:["korea"],cities:["Seoul","Busan","Incheon"],first:["Minjun","Jiwoo","Seojun","Hana","Jisoo"],last:["Kim","Park","Lee","Choi"]},
+ {n:"Germany",c:"DEU",cities:["Berlin","Hamburg","Munich"],first:["Anna","Felix","Lena","Jonas","Max"],last:["Schmidt","Becker","Wagner","Fischer"]},
+ {n:"France",c:"FRA",cities:["Paris","Lyon","Nice"],first:["Camille","Hugo","Lea","Louis","Manon"],last:["Martin","Dubois","Bernard","Petit"]},
+ {n:"Spain",c:"ESP",cities:["Madrid","Seville","Valencia"],first:["Pablo","Lucia","Carmen","Javier","Elena"],last:["Ruiz","Moreno","Navarro"]},
+ {n:"Vietnam",c:"VNM",cities:["Hanoi","Hue","Da Nang"],first:["Linh","Minh","Lan","Duc","Mai"],last:["Nguyen","Tran","Pham"]},
+ {n:"China",c:"CHN",cities:["Beijing","Shanghai","Chengdu"],first:["Wei","Mei","Lin","Jun","Hao"],last:["Wang","Li","Zhang","Chen"]},
+ {n:"Turkey",c:"TUR",al:["turkiye"],cities:["Istanbul","Ankara","Izmir"],first:["Emre","Elif","Can","Zeynep","Mert"],last:["Yilmaz","Kaya","Demir"]},
+ {n:"Argentina",c:"ARG",cities:["Rosario","Mendoza","Salta"],first:["Martin","Valentina","Tomas","Camila"],last:["Fernandez","Gomez","Diaz"]},
+ {n:"Nigeria",c:"NGA",cities:["Lagos","Abuja","Kano"],first:["Tunde","Ada","Chidi","Funmi","Emeka"],last:["Okafor","Adeyemi","Bello"]},
+ {n:"UK",c:"GBR",the:true,al:["uk","unitedkingdom","britain","greatbritain","england","gb"],cities:["London","Manchester","Leeds"],first:["Oliver","Amelia","Harry","Grace","George"],last:["Smith","Jones","Evans"]},
+ {n:"USA",c:"USA",the:true,al:["usa","us","unitedstates","unitedstatesofamerica","america"],cities:["Chicago","Boston","Denver"],first:["Ethan","Mia","Ava","Tyler","Grace"],last:["Johnson","Miller","Davis","Clark"]}
+];
+const JOBS=[{n:"teacher"},{n:"doctor"},{n:"nurse"},{n:"chef",al:["cook"]},{n:"taxi driver",al:["driver"]},{n:"engineer"},{n:"farmer"},{n:"police officer",al:["police","policeman","policewoman"]},{n:"journalist",al:["reporter"]},{n:"architect"},{n:"accountant"},{n:"pilot"},{n:"dentist"},{n:"shop manager",al:["manager"]},{n:"builder"},{n:"vet",al:["veterinarian"]},{n:"firefighter",al:["fireman"]},{n:"mechanic"},{n:"web designer",al:["designer"]},{n:"tour guide",al:["guide"]}];
+const MOVE_WHY=[{d:"for a new job",k:["job","work"]},{d:"to study at university",k:["stud","universit"]},{d:"to be closer to my family",k:["famil","parent"]},{d:"because my partner got a job there",k:["partner","wife","husband","boyfriend","girlfriend"]},{d:"for the warmer weather",k:["weather","warm","sun"]},{d:"because it's cheaper to live there",k:["cheap","money","cost","expensive"]}];
+const BEST=[{d:"every day is different",k:["different"]},{d:"my colleagues are great",k:["colleague","people","team"]},{d:"I can work from home",k:["home"]},{d:"I travel a lot",k:["travel"]},{d:"I help people",k:["help"]},{d:"the hours are flexible",k:["flexib","hours"]}];
+const WORST=[{d:"the long hours",k:["long","hours"]},{d:"the commute",k:["commut","traffic","journey"]},{d:"boring meetings",k:["meeting"]},{d:"working at weekends",k:["weekend"]},{d:"the low salary",k:["salary","money","pay"]},{d:"my boss",k:["boss","manager"]}];
+const DESTS=["Lisbon","Bali","Iceland","Peru","Morocco","Thailand","Scotland","Greece","New Zealand","Croatia","Vietnam","Cape Town"];
+const WHENS=[{d:"last summer",k:["last summer"]},{d:"two months ago",k:["two months","2 months"]},{d:"three weeks ago",k:["three weeks","3 weeks"]},{d:"last year",k:["last year"]},{d:"in April",k:["april"]},{d:"last winter",k:["last winter"]},{d:"at Christmas",k:["christmas"]}];
+const ACTS=[{d:"went hiking in the mountains",k:["hik","walk","mountain","trek"]},{d:"visited lots of museums",k:["museum"]},{d:"lay on the beach all day",k:["beach"]},{d:"tried lots of local food",k:["food","ate","eat"]},{d:"went surfing",k:["surf"]},{d:"took a cooking class",k:["cook"]},{d:"went on a boat trip",k:["boat"]}];
+const ENJOY=[{d:"Loved it",me:"I loved it.",why:["the people were so friendly","the food was incredible","the views were amazing"]},{d:"It was OK",me:"It was OK.",why:["it was too crowded","it was quite expensive"]},{d:"Didn't enjoy it",me:"I didn't really enjoy it.",why:["it rained every day","I got sick on the second day","the hotel was terrible"]}];
+const EXPS=[
+ {pp:"been to a music festival",label:"Music festival",det:["last summer, with friends","in 2019, it rained all weekend","three times, loves them"]},
+ {pp:"broken a bone",label:"Broken a bone",det:["arm, playing football","leg, skiing","finger, in a car door"]},
+ {pp:"met someone famous",label:"Met someone famous",det:["a singer, at an airport","a footballer, in a restaurant","an actor, on a train"]},
+ {pp:"run a marathon",label:"Run a marathon",det:["in 2022, took five hours","twice, Berlin and London","last year, nearly gave up"]},
+ {pp:"lost your passport",me:"lost my passport",label:"Lost a passport",det:["on holiday in 2018","at a train station","found it a day later"]},
+ {pp:"ridden a horse",label:"Ridden a horse",det:["on a farm, as a child","on a beach, on holiday","once, fell off"]},
+ {pp:"eaten insects",label:"Eaten insects",det:["crickets, in Thailand","ants, at a party","once, they were crunchy"]},
+ {pp:"been on TV",label:"Been on TV",det:["on a quiz show","behind a reporter on the news","in the crowd at a football match"]},
+ {pp:"missed a flight",label:"Missed a flight",det:["because of traffic","overslept","twice, same airport"]},
+ {pp:"slept outside under the stars",label:"Slept under the stars",det:["in the desert","on a camping trip","on a beach"]},
+ {pp:"won a competition",label:"Won a competition",det:["a cooking competition","a photo competition","a dance competition at school"]},
+ {pp:"cooked for more than ten people",label:"Cooked for 10+ people",det:["at Christmas","for a sister's birthday","for a work party"]}
+];
+const HABITS=[{you:"go to the gym",me:"go to the gym",label:"Go to the gym"},{you:"cook dinner",me:"cook dinner",label:"Cook dinner"},{you:"eat out",me:"eat out",label:"Eat out"},{you:"read the news",me:"read the news",label:"Read the news"},{you:"call your family",me:"call my family",label:"Call family"},{you:"go to the cinema",me:"go to the cinema",label:"Go to the cinema"},{you:"take public transport",me:"take public transport",label:"Take public transport"},{you:"play sports",me:"play sports",label:"Play sports"}];
+const FREQ=[{d:"Never",pre:"never"},{d:"Hardly ever",pre:"hardly ever"},{d:"Sometimes",pre:"sometimes"},{d:"Once or twice a week",post:"once or twice a week"},{d:"Almost every day",post:"almost every day"}];
+const TIMES=[[5,30],[5,45],[6,0],[6,15],[6,30],[6,45],[7,0],[7,15],[7,30],[7,45],[8,0],[8,30],[9,0]];
+const PLANS=[{d:"learn to drive",k:["driv"]},{d:"start my own business",k:["business","company"]},{d:"move to another country",k:["move"]},{d:"get married",k:["marr","wedding"]},{d:"learn Spanish",k:["spanish"]},{d:"run a half marathon",k:["marathon"]},{d:"buy a flat",k:["flat","apartment","house"]},{d:"go back to university",k:["universit","study"]}];
+const DILEMMAS=[
+ {q:"Would you rather live in the city or the countryside?",label:"City or countryside?",a:{d:"The city",me:"live in the city"},b:{d:"The countryside",me:"live in the countryside"},
+  ra:[{d:"there's always something to do",k:["something","do","fun","busy","exciting"]},{d:"the public transport is better",k:["transport","bus","train","metro"]}],
+  rb:[{d:"it's quieter and less stressful",k:["quiet","stress","calm","peace"]},{d:"the air is cleaner",k:["air","clean","pollut"]}]},
+ {q:"Would you rather go on a beach holiday or a mountain holiday?",label:"Beach or mountains?",a:{d:"The beach",me:"go to the beach"},b:{d:"The mountains",me:"go to the mountains"},
+  ra:[{d:"I love swimming",k:["swim"]},{d:"I just want to relax",k:["relax","rest"]}],
+  rb:[{d:"I love hiking",k:["hik","walk"]},{d:"I don't like hot weather",k:["hot","heat","cool","cold"]}]},
+ {q:"Would you rather work from home or in an office?",label:"Home or office?",a:{d:"From home",me:"work from home"},b:{d:"In an office",me:"work in an office"},
+  ra:[{d:"I don't have to commute",k:["commut","travel","traffic","journey"]},{d:"I can concentrate better",k:["concentrat","focus","quiet"]}],
+  rb:[{d:"I like seeing my colleagues",k:["colleague","people","team","social","friend"]},{d:"it's easier to separate work and home",k:["separat","balance"]}]},
+ {q:"Would you rather have summer all year or winter all year?",label:"Summer or winter?",a:{d:"Summer",me:"have summer all year"},b:{d:"Winter",me:"have winter all year"},
+  ra:[{d:"I love long, sunny days",k:["sun","long","light","warm"]},{d:"I can be outside more",k:["outside","outdoor"]}],
+  rb:[{d:"I love snow and skiing",k:["snow","ski"]},{d:"it's cosy to stay at home",k:["cosy","cozy","home","inside"]}]}
+];
+const LOTTERY=[{d:"travel around the world",k:["travel","world","trip"]},{d:"buy a house by the sea",k:["house","sea","beach"]},{d:"give most of it to charity",k:["charit","give"]},{d:"stop working and relax",k:["stop","quit","relax","retire"]},{d:"open a small café",k:["cafe","restaurant","coffee"]},{d:"help my family",k:["famil","parent"]}];
+const CODE_WORDS=["LION","PANDA","TIGER","ZEBRA","KOALA","HIPPO","CAMEL","SHARK","EAGLE","OTTER","MOOSE","LLAMA","GECKO","BISON","CRANE","ROBIN","WHALE","HORSE","FALCON","BADGER","PARROT","WALRUS"];
+const MODS=[{bit:1,t:"Life and work"},{bit:2,t:"Travel and experiences"},{bit:4,t:"Habits and the future"}];
+
+/* ---------- codes ---------- */
+function normCode(s){ return String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,""); }
+function prettyCode(s){ const n=normCode(s), m=n.match(/^([A-Z]+)(\d+)$/); return m?m[1]+"-"+m[2]:n; }
+function settingsOf(code){
+  const m=normCode(code).match(/(\d{3})$/); let mask=3, lie=false;
+  if(m){ const h=+m[1][0]; if(h>=1&&h<=7) mask=h; lie=(+m[1][1])%2===1; }
+  return {mask,lie};
+}
+function makeCode(mask,lie,used){
+  let c; do{ const tens=lie?pick(Math.random,[1,3,5,7,9]):pick(Math.random,[0,2,4,6,8]); c=pick(Math.random,CODE_WORDS)+"-"+mask+tens+Math.floor(Math.random()*10); }while(used&&used.has(c)); if(used) used.add(c); return c;
+}
+
+/* ---------- avatar ---------- */
+function avatar(r){
+  const skin=pick(r,["#F6D3B8","#EBB993","#C98D61","#93603E","#5E3B25"]);
+  const hair=pick(r,["#2A1A10","#5A3A22","#9C643A","#D8B26A","#8D8D8D","#141414","#7A2E1E"]);
+  const shirt=pick(r,["#2E6E8E","#A62B2B","#3E7D4F","#7A4E9C","#C98A2B","#34495E","#D06A8C"]);
+  const style=int(r,0,4), glasses=r()<0.3, bg=pick(r,["#E6E1D3","#DCE6EE","#D9E8DF","#EBDCDC"]);
+  const front='<path d="M33 63 C30 37 46 29 60 29 C76 29 90 37 87 63 C82 50 72 44 60 44 C48 44 38 50 33 63Z" fill="'+hair+'"/>';
+  let back="", top="";
+  if(style===0) top=front;
+  if(style===1){ back='<rect x="27" y="40" width="66" height="76" rx="28" fill="'+hair+'"/>'; top=front; }
+  if(style===2) top=front+'<circle cx="60" cy="27" r="11" fill="'+hair+'"/>';
+  if(style===3) top=[[35,54],[42,42],[53,35],[67,35],[78,42],[85,54],[60,32]].map(p=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="10" fill="'+hair+'"/>').join("");
+  if(style===4) top='<path d="M35 56 C38 39 50 34 60 34 C70 34 82 39 85 56 C78 47 70 43 60 43 C50 43 42 47 35 56Z" fill="'+hair+'"/>';
+  return '<svg viewBox="0 0 120 150" role="img" aria-label="Passport photo"><rect width="120" height="150" fill="'+bg+'"/>'+back
+   +'<path d="M8 150 C12 117 36 107 60 107 C84 107 108 117 112 150Z" fill="'+shirt+'"/><rect x="50" y="86" width="20" height="26" rx="7" fill="'+skin+'"/>'
+   +'<ellipse cx="33" cy="69" rx="5" ry="7" fill="'+skin+'"/><ellipse cx="87" cy="69" rx="5" ry="7" fill="'+skin+'"/><ellipse cx="60" cy="66" rx="27" ry="31" fill="'+skin+'"/>'+top
+   +'<circle cx="50" cy="67" r="2.7" fill="#2A1E22"/><circle cx="70" cy="67" r="2.7" fill="#2A1E22"/>'
+   +(glasses?'<g fill="none" stroke="#2A1E22" stroke-width="2"><circle cx="50" cy="67" r="7.5"/><circle cx="70" cy="67" r="7.5"/><path d="M57.5 67h5"/></g>':'')
+   +'<path d="M51 80 Q60 87 69 80" stroke="#2A1E22" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>';
+}
+
+/* ---------- characters ---------- */
+function makeChar(r,shared){
+  const home=pick(r,COUNTRIES), first=pick(r,home.first), last=pick(r,home.last), bornCity=pick(r,home.cities);
+  const liveCountry=r()<0.6?pickOther(r,COUNTRIES,home):home;
+  const liveCity=pickOther(r,liveCountry.cities,bornCity);
+  const age=int(r,26,62), years=int(r,1,Math.min(18,age-20)), job=pick(r,JOBS), jobYears=int(r,1,Math.min(20,age-23));
+  const c={first,last,age,born:{city:bornCity,country:home.n,code:home.c},live:{city:liveCity,country:liveCountry.n},years,moveWhy:pick(r,MOVE_WHY),
+    job,jobYears,best:pick(r,BEST),worst:pick(r,WORST),
+    hol:{dest:pick(r,DESTS),when:pick(r,WHENS),act:pick(r,ACTS)},enjoy:int(r,0,2)};
+  c.enjoyWhy=pick(r,ENJOY[c.enjoy].why);
+  c.exp=shared.exps.map(i=>{ const yes=r()<0.55; return {yes,det:yes?pick(r,EXPS[i].det):""}; });
+  c.habits=shared.habits.map(()=>int(r,0,4));
+  c.getup=pick(r,TIMES); c.plan=pick(r,PLANS);
+  c.choice=r()<0.5?"a":"b"; c.reason=pick(r,DILEMMAS[shared.dil][c.choice==="a"?"ra":"rb"]);
+  c.lottery=pick(r,LOTTERY); c.photo=avatar(r);
+  return c;
+}
+
+/* ---------- fields ---------- */
+function buildFields(shared){
+  const dil=DILEMMAS[shared.dil];
+  const F=[
+   {id:"name",m:1,label:"Full name",q:"What's your full name?",fu:"How do you spell your surname?",type:"text",
+    val:c=>c.first+" "+c.last, frame:c=>"My name's "+c.first+" "+c.last+".", check:(c,v)=>squash(v).includes(squash(c.first))&&squash(v).includes(squash(c.last))},
+   {id:"born",m:1,label:"Born in",q:"Where were you born?",fu:"What was it like growing up there?",type:"text",
+    val:c=>c.born.city+", "+c.born.country, frame:c=>"I was born in "+c.born.city+", in "+(c.born.country==="UK"||c.born.country==="USA"?"the ":"")+c.born.country+".",
+    check:(c,v)=>hasKw(v,[c.born.city]),
+    lie:(s,r)=>{ const other=pickOther(r,COUNTRIES,COUNTRIES.find(x=>x.n===s.born.country)); s.born={city:pick(r,other.cities),country:other.n,code:other.c}; }},
+   {id:"live",m:1,label:"Lives in now",q:"Where do you live now?",fu:"Do you like it there?",type:"text",
+    val:c=>c.live.city+", "+c.live.country, frame:c=>"I live in "+c.live.city+" now.", check:(c,v)=>hasKw(v,[c.live.city])},
+   {id:"years",m:1,label:"Lived there for",q:"How long have you lived there?",fu:"Answer with for or since.",type:"text",
+    val:c=>c.years+" years (since "+(YEAR-c.years)+")", frame:c=>"I've lived there for "+c.years+" years. / I've lived there since "+(YEAR-c.years)+".",
+    check:(c,v)=>{ const n=numsIn(v); return n.includes(c.years)||n.includes(YEAR-c.years); },
+    lie:(s,r)=>{ const d=int(r,3,7); s.years=s.years+d<=30?s.years+d:Math.max(1,s.years-d); }},
+   {id:"why",m:1,label:"Moved there",q:"Why did you move there?",fu:"Was it difficult at first?",type:"text",
+    val:c=>c.moveWhy.d, frame:c=>"I moved there "+c.moveWhy.d+".", check:(c,v)=>hasKw(v,c.moveWhy.k)},
+   {id:"job",m:1,label:"Job",q:"What do you do?",fu:"What does a normal day look like?",type:"text",
+    val:c=>cap(c.job.n), frame:c=>"I'm "+article(c.job.n)+" "+c.job.n+".",
+    check:(c,v)=>{ const s=words(v).filter(w=>!["i","im","am","a","an","my","job","is","m","work","as"].includes(w)).join("").replace(/s$/,""); const o=[squash(c.job.n)].concat(c.job.al||[]).map(x=>x.replace(/s$/,"")); return s.length>0&&o.some(x=>s===x||s.endsWith(x)); },
+    lie:(s,r)=>{ s.job=pickOther(r,JOBS,s.job); }},
+   {id:"jobyears",m:1,label:"Job for",q:"How long have you done this job?",fu:"What did you do before that?",type:"text",
+    val:c=>c.jobYears+" years (since "+(YEAR-c.jobYears)+")", frame:c=>"I've been "+article(c.job.n)+" "+c.job.n+" for "+c.jobYears+" years.",
+    check:(c,v)=>{ const n=numsIn(v); return n.includes(c.jobYears)||n.includes(YEAR-c.jobYears); }},
+   {id:"best",m:1,label:"Best thing about the job",q:"What's the best thing about your job?",fu:"Can you give me an example?",type:"text",
+    val:c=>c.best.d, frame:c=>"The best thing is that "+c.best.d+".", check:(c,v)=>hasKw(v,c.best.k)},
+   {id:"worst",m:1,label:"Worst thing about the job",q:"And what's the worst thing?",fu:"How do you deal with it?",type:"text",
+    val:c=>c.worst.d, frame:c=>"The worst thing is "+c.worst.d+".", check:(c,v)=>hasKw(v,c.worst.k)},
+
+   {id:"dest",m:2,label:"Last holiday: where",q:"Where did you go on your last holiday?",fu:"Who did you go with?",type:"text",
+    val:c=>c.hol.dest, frame:c=>"I went to "+c.hol.dest+".", check:(c,v)=>hasKw(v,[c.hol.dest]),
+    lie:(s,r)=>{ s.hol=Object.assign({},s.hol,{dest:pickOther(r,DESTS,s.hol.dest)}); }},
+   {id:"when",m:2,label:"Last holiday: when",q:"When did you go?",fu:"How long did you stay?",type:"text",
+    val:c=>c.hol.when.d, frame:c=>"I went "+c.hol.when.d+".", check:(c,v)=>hasKw(v,c.hol.when.k)},
+   {id:"act",m:2,label:"Last holiday: what they did",q:"What did you do there?",fu:"What was the best part?",type:"text",
+    val:c=>c.hol.act.d, frame:c=>"I "+c.hol.act.d+".", check:(c,v)=>hasKw(v,c.hol.act.k)},
+   {id:"enjoy",m:2,label:"Did they enjoy it?",q:"Did you enjoy it?",fu:"Why? / Why not?",type:"select",options:ENJOY.map(e=>e.d),
+    val:c=>ENJOY[c.enjoy].d+" ("+c.enjoyWhy+")", frame:c=>ENJOY[c.enjoy].me+" "+cap(c.enjoyWhy)+".", check:(c,v)=>v.sel===String(c.enjoy)}
+  ];
+  shared.exps.forEach((ei,i)=>{
+    const e=EXPS[ei];
+    F.push({id:"exp"+i,m:2,label:"Have you ever "+e.pp+"?",short:e.label,q:"Have you ever "+e.pp+"?",fu:"If yes: When? Where? What happened?",type:"yesno",
+      val:c=>c.exp[i].yes?"Yes ("+c.exp[i].det+")":"No", frame:c=>c.exp[i].yes?"Yes, I have. (Then use the notes: "+c.exp[i].det+")":"No, I haven't. / No, never.",
+      check:(c,v)=>v.yn===(c.exp[i].yes?"yes":"no"),
+      lie:(s,r)=>{ const was=s.exp[i].yes; s.exp=s.exp.slice(); s.exp[i]={yes:!was,det:!was?pick(r,e.det):""}; }});
+  });
+  F.push({id:"getup",m:4,label:"Gets up at",q:"What time do you usually get up on weekdays?",fu:"Are you a morning person?",type:"text",
+    val:c=>timeDigits(c.getup), frame:c=>"I usually get up at "+timeWords(c.getup)+".",
+    check:(c,v)=>{ const t=parseTime(v); return !!t&&t[0]===c.getup[0]%12&&t[1]===c.getup[1]; }});
+  shared.habits.forEach((hi,i)=>{
+    const h=HABITS[hi];
+    F.push({id:"hab"+i,m:4,label:"How often: "+h.label.toLowerCase(),short:h.label,q:"How often do you "+h.you+"?",fu:"Why? / Who with?",type:"freq",
+      val:c=>FREQ[c.habits[i]].d, frame:c=>{ const f=FREQ[c.habits[i]]; return f.pre?"I "+f.pre+" "+h.me+".":"I "+h.me+" "+f.post+"."; },
+      check:(c,v)=>v.sel===String(c.habits[i]),
+      lie:(s,r)=>{ s.habits=s.habits.slice(); s.habits[i]=pickOther(r,[0,1,2,3,4],s.habits[i]); }});
+  });
+  F.push(
+   {id:"plan",m:4,label:"Plan for next year",q:"What are you going to do next year?",fu:"Why do you want to do that?",type:"text",
+    val:c=>c.plan.d, frame:c=>"I'm going to "+c.plan.d+".", check:(c,v)=>hasKw(v,c.plan.k),
+    lie:(s,r)=>{ s.plan=pickOther(r,PLANS,s.plan); }},
+   {id:"choice",m:4,label:dil.label,q:dil.q,fu:"",type:"choice",options:[dil.a.d,dil.b.d],
+    val:c=>dil[c.choice].d, frame:c=>"I'd rather "+dil[c.choice].me+".", check:(c,v)=>v.sel===c.choice},
+   {id:"reason",m:4,label:"Why?",q:"Why?",fu:"Is there anything you don't like about it?",type:"text",
+    val:c=>c.reason.d, frame:c=>"Because "+c.reason.d+".", check:(c,v)=>hasKw(v,c.reason.k)},
+   {id:"lottery",m:4,label:"If they won a lot of money",q:"If you won a lot of money, what would you do?",fu:"What would you do first?",type:"text",
+    val:c=>c.lottery.d, frame:c=>"I'd "+c.lottery.d+".", check:(c,v)=>hasKw(v,c.lottery.k),
+    lie:(s,r)=>{ s.lottery=pickOther(r,LOTTERY,s.lottery); }}
+  );
+  return F;
+}
+
+function makePair(code){
+  const {mask,lie}=settingsOf(code);
+  const r=mulberry32(xmur3("ppi:"+normCode(code))());
+  const shared={exps:pickN(r,EXPS.length,4),habits:pickN(r,HABITS.length,3),dil:int(r,0,DILEMMAS.length-1)};
+  const A=makeChar(r,shared); let B=makeChar(r,shared), g=0;
+  while((B.born.country===A.born.country||B.first===A.first)&&g++<20) B=makeChar(r,shared);
+  const fields=buildFields(shared).filter(f=>f.m&mask);
+  const out={mask,lie,shared,fields,A:{truth:A,spoken:A,lie:null},B:{truth:B,spoken:B,lie:null}};
+  if(lie){
+    ["A","B"].forEach(role=>{
+      const cands=fields.filter(f=>f.lie); if(!cands.length) return;
+      const f=pick(r,cands), truth=out[role].truth, spoken=JSON.parse(JSON.stringify(truth));
+      spoken.job=JOBS.find(j=>j.n===spoken.job.n)||spoken.job;
+      f.lie(spoken,r);
+      out[role]={truth,spoken,lie:{id:f.id,truthVal:f.val(truth)}};
+    });
+  }
+  return out;
+}
+
+/* ---------- rendering ---------- */
+function qText(f,c){ return f.q.replace("[job]",c?c.job.n:"job"); }
+function mrz(c,role,code){
+  const l1=("P<"+c.born.code+squash(c.last).toUpperCase()+"<<"+squash(c.first).toUpperCase()).padEnd(36,"<").slice(0,36);
+  const l2=(normCode(code)+"<"+role+"<"+String(c.age).padStart(2,"0")+"<"+String(c.years).padStart(2,"0")).padEnd(36,"<").slice(0,36);
+  return esc(l1)+"<br>"+esc(l2);
+}
+function renderCard(pair,role,code,label){
+  const side=pair[role], c=side.spoken, lieId=side.lie&&side.lie.id;
+  const secs=MODS.filter(m=>pair.mask&m.bit).map(m=>{
+    const rows=pair.fields.filter(f=>f.m===m.bit&&f.id!=="name").map(f=>{
+      const isLie=f.id===lieId, lbl=f.short||f.label;
+      return '<div class="pp-f'+(isLie?' lie':'')+'"><dt>'+esc(lbl)+'</dt><dd>'+esc(f.val(c))+'</dd>'
+        +(isLie?'<span class="lie-tag">This is your lie. Say it confidently! The truth: '+esc(side.lie.truthVal)+'</span>':'')
+        +'<p class="frame">"'+esc(f.frame(c))+'"</p></div>';
+    }).join("");
+    return '<section class="pp-sec"><h3>'+m.t+'</h3><dl class="pp-fields">'+rows+'</dl></section>';
+  }).join("");
+  return '<article class="passport"><div class="pp-head"><span class="pp-title">Character card</span><span class="pp-role">'+esc(label||("Student "+role))+'</span></div>'
+    +'<div class="pp-id"><div class="pp-photo">'+c.photo+'</div><div><div class="pp-name">'+esc(c.first+" "+c.last)+'</div><div class="pp-age">Age '+c.age+'</div></div></div>'
+    +secs+'<div class="pp-mrz" aria-hidden="true">'+mrz(c,role,code)+'</div></article>';
+}
+function inputFor(f){
+  const id="pf-"+f.id, base='autocomplete="off" autocapitalize="off" spellcheck="false" autocorrect="off"';
+  if(f.type==="select"||f.type==="freq"){
+    const opts=f.type==="freq"?FREQ.map(x=>x.d):f.options;
+    return '<div class="pf-inputs"><select id="'+id+'"><option value="">Choose</option>'+opts.map((o,i)=>'<option value="'+i+'">'+esc(o)+'</option>').join("")+'</select></div>';
+  }
+  if(f.type==="yesno"){
+    return '<div class="pf-inputs"><div class="radios" role="radiogroup" aria-label="'+esc(f.label)+'"><label><input type="radio" name="'+id+'" value="yes"> Yes</label><label><input type="radio" name="'+id+'" value="no"> No</label></div>'
+      +'<input type="text" class="notes" id="'+id+'-notes" placeholder="Notes: when, where, what happened?" '+base+' aria-label="Notes"></div>';
+  }
+  if(f.type==="choice"){
+    return '<div class="pf-inputs"><div class="radios" role="radiogroup" aria-label="'+esc(f.label)+'">'+["a","b"].map((k,i)=>'<label><input type="radio" name="'+id+'" value="'+k+'"> '+esc(f.options[i])+'</label>').join("")+'</div></div>';
+  }
+  return '<div class="pf-inputs"><input type="text" id="'+id+'" '+base+'></div>';
+}
+function readVal(f){
+  const id="pf-"+f.id;
+  if(f.type==="select"||f.type==="freq") return {sel:document.getElementById(id).value};
+  if(f.type==="yesno"){ const ch=document.querySelector('input[name="'+id+'"]:checked'); return {yn:ch?ch.value:""}; }
+  if(f.type==="choice"){ const ch=document.querySelector('input[name="'+id+'"]:checked'); return {sel:ch?ch.value:""}; }
+  return document.getElementById(id).value;
+}
+function isEmpty(f,v){ if(typeof v==="string") return !v.trim(); return !(v.sel||v.yn); }
+function rowHTML(f,partner){
+  const labelEl=(f.type==="yesno"||f.type==="choice")?'<span class="lbl">'+esc(f.short||f.label)+'</span>':'<label for="pf-'+f.id+'">'+esc(f.label)+'</label>';
+  const ask='<p class="ask">Ask: \u201C'+esc(qText(f,partner))+'\u201D'+(f.fu?'<span class="fu">Follow up: '+esc(f.fu)+'</span>':'')+'</p>';
+  return '<div class="pf-row" data-id="'+f.id+'">'+labelEl+ask+inputFor(f)+'<span class="mark" aria-hidden="true"></span><p class="answer" hidden></p></div>';
+}
+
+/* ---------- sound ---------- */
+let soundOn=true, actx=null;
+function ctx(){ if(!actx){ try{ actx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ actx=null; } } if(actx&&actx.state==="suspended") actx.resume(); return actx; }
+function tone(freq,dur,type,vol,when){
+  const a=ctx(); if(!a||!soundOn) return; const t=a.currentTime+(when||0);
+  const o=a.createOscillator(), g=a.createGain(); o.type=type||"sine"; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.15,t+.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+.02);
+}
+function stampSound(when){
+  const a=ctx(); if(!a||!soundOn) return; const t=a.currentTime+(when||0);
+  const len=Math.floor(a.sampleRate*.12), buf=a.createBuffer(1,len,a.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+  const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain(); src.buffer=buf; f.type="lowpass"; f.frequency.value=900; g.gain.value=.6;
+  src.connect(f).connect(g).connect(a.destination); src.start(t);
+  const o=a.createOscillator(), og=a.createGain(); o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(55,t+.18);
+  og.gain.setValueAtTime(.35,t); og.gain.exponentialRampToValueAtTime(0.0001,t+.22); o.connect(og).connect(a.destination); o.start(t); o.stop(t+.25);
+}
+
+/* ---------- screens ---------- */
+const $=s=>document.querySelector(s);
+function show(name){ document.querySelectorAll("[data-screen]").forEach(s=>s.hidden=s.dataset.screen!==name); window.scrollTo(0,0); }
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>{ show(b.dataset.go); if(b.dataset.go==="join") setTimeout(()=>$("#codeInput").focus(),30); }));
+$("#homeBtn").addEventListener("click",()=>show("home"));
+$("#soundBtn").addEventListener("click",e=>{ soundOn=!soundOn; e.currentTarget.textContent=soundOn?"Sound on":"Sound off"; e.currentTarget.setAttribute("aria-pressed",String(soundOn)); if(soundOn) tone(660,.12,"sine",.12); });
+
+function drawSample(){ const code=makeCode(3,false); $("#sampleCard").innerHTML=renderCard(makePair(code),"A",code,"Example"); }
+$("#sampleBtn").addEventListener("click",()=>{ drawSample(); tone(520,.08,"triangle",.1); });
+drawSample();
+
+/* join */
+let state=null;
+document.querySelectorAll("[data-role]").forEach(b=>b.addEventListener("click",()=>{
+  const code=normCode($("#codeInput").value);
+  if(code.length<3){ $("#joinError").textContent="Type the code from your teacher first."; $("#codeInput").focus(); return; }
+  $("#joinError").textContent=""; openStudent(code,b.dataset.role);
+}));
+$("#practiceBtn").addEventListener("click",()=>{ $("#codeInput").value=makeCode(3,false); $("#joinError").textContent="Practice code ready. Give this code to your partner too, then choose A or B."; });
+$("#codeInput").addEventListener("keydown",e=>{ if(e.key==="Enter") document.querySelector('[data-role="A"]').focus(); });
+
+/* student */
+function openStudent(code,role){
+  const pair=makePair(code), other=role==="A"?"B":"A";
+  state={code,role,pair,partner:pair[other]};
+  $("#barCode").textContent=prettyCode(code); $("#barRole").textContent="Student "+role;
+  $("#myCardWrap").innerHTML=renderCard(pair,role,code);
+  $("#myCardWrap").classList.toggle("show-frames",$("#framesToggle").checked);
+  $("#secretNote").textContent=pair.lie?"Keep your card secret. One answer is a lie. Say it like it's true!":"Keep your card secret. Don't show your partner!";
+  const pc=state.partner.spoken;
+  let html=MODS.filter(m=>pair.mask&m.bit).map(m=>'<div class="pf-sec"><h3>'+m.t+'</h3><div class="pf-rows">'+pair.fields.filter(f=>f.m===m.bit).map(f=>rowHTML(f,pc)).join("")+'</div></div>').join("");
+  if(pair.lie){
+    html+='<div class="pf-sec"><h3>Spot the lie</h3><div class="pf-rows"><div class="pf-row lie-row" data-id="__lie"><label for="pf-__lie">Which answer was a lie?</label><p class="ask">Ask more follow-up questions if you aren\'t sure.</p>'
+      +'<div class="pf-inputs"><select id="pf-__lie"><option value="">Choose</option>'+pair.fields.filter(f=>f.lie).map(f=>'<option value="'+f.id+'">'+esc(f.short||f.label)+'</option>').join("")+'</select></div><span class="mark" aria-hidden="true"></span><p class="answer" hidden></p></div></div></div>';
+  }
+  $("#pfBody").innerHTML=html;
+  $("#stamp").hidden=true; $("#revealBtn").hidden=true; $("#checkMsg").textContent="";
+  try{ const u=new URL(location.href); u.searchParams.set("code",prettyCode(code)); u.searchParams.set("role",role); history.replaceState(null,"",u); }catch(e){}
+  show("student");
+}
+$("#framesToggle").addEventListener("change",e=>$("#myCardWrap").classList.toggle("show-frames",e.target.checked));
+$("#asksToggle").addEventListener("change",e=>$("#pfBody").classList.toggle("show-asks",e.target.checked));
+function clearRow(e){ const row=e.target.closest(".pf-row"); if(row&&!e.target.classList.contains("notes")){ row.classList.remove("ok","bad"); row.querySelector(".mark").textContent=""; } }
+$("#pfBody").addEventListener("input",clearRow); $("#pfBody").addEventListener("change",clearRow);
+
+$("#checkBtn").addEventListener("click",()=>{
+  if(!state) return;
+  const fs=state.pair.fields, partner=state.partner, pc=partner.spoken;
+  let score=0, total=fs.length, blanks=0, i=0;
+  function mark(row,ok,empty,answer){
+    row.classList.remove("ok","bad"); row.classList.add(ok?"ok":"bad");
+    row.querySelector(".mark").textContent=ok?"\u2713":(empty?"?":"\u2717");
+    const a=row.querySelector(".answer"); a.textContent=answer; a.hidden=true;
+    tone(ok?880:220,.09,ok?"sine":"square",ok?.12:.05,(i++)*.06);
+  }
+  fs.forEach(f=>{
+    const row=document.querySelector('.pf-row[data-id="'+f.id+'"]'), v=readVal(f), empty=isEmpty(f,v), ok=!empty&&f.check(pc,v);
+    if(ok) score++; if(empty) blanks++;
+    mark(row,ok,empty,"Answer: "+f.val(pc));
+  });
+  if(state.pair.lie&&partner.lie){
+    total++; const row=document.querySelector('.pf-row[data-id="__lie"]'), v=$("#pf-__lie").value, ok=v===partner.lie.id;
+    const lf=fs.find(f=>f.id===partner.lie.id);
+    if(ok) score++; if(!v) blanks++;
+    mark(row,ok,!v,"The lie was \u201C"+(lf.short||lf.label)+"\u201D. The truth: "+partner.lie.truthVal);
+  }
+  const st=$("#stamp"); st.className="stamp"+(score===total?" perfect":"");
+  st.innerHTML='<span class="stamp-score">'+score+'/'+total+'</span><span class="stamp-word">'+(score===total?"Perfect!":"Checked")+'</span>';
+  st.hidden=false; void st.offsetWidth; st.classList.add("thud"); stampSound(i*.06+.05);
+  $("#revealBtn").hidden=score===total;
+  $("#checkMsg").textContent=score===total?"Every answer is correct. Now tell the class three interesting things about your partner.":(blanks?"Some answers are missing. Ask your partner, then check again.":"Ask again about the red answers. Try a different question, then check again.");
+});
+$("#revealBtn").addEventListener("click",()=>document.querySelectorAll(".pf-row.bad .answer").forEach(a=>a.hidden=false));
+
+/* teacher */
+let classCodes=[];
+$("#makeCodes").addEventListener("click",()=>{
+  const mask=[...document.querySelectorAll('input[name=mod]:checked')].reduce((a,b)=>a+(+b.value),0);
+  if(!mask){ $("#teacherError").textContent="Choose at least one topic."; return; }
+  $("#teacherError").textContent="";
+  const lie=$("#lieMode").checked, n=Math.max(1,Math.min(20,parseInt($("#pairCount").value,10)||1)); $("#pairCount").value=n;
+  const used=new Set(); classCodes=Array.from({length:n},()=>makeCode(mask,lie,used));
+  $("#codes").innerHTML=classCodes.map(code=>{
+    const p=makePair(code);
+    const cell=(side,f)=>{ const isLie=side.lie&&side.lie.id===f.id; return '<td'+(isLie?' class="lie-cell"':'')+'>'+esc(f.val(side.spoken))+(isLie?'<br>Lie. Truth: '+esc(side.lie.truthVal):'')+'</td>'; };
+    const rows=MODS.filter(m=>p.mask&m.bit).map(m=>'<tr class="sec-row"><th colspan="3">'+m.t+'</th></tr>'+p.fields.filter(f=>f.m===m.bit).map(f=>'<tr><th scope="row">'+esc(f.short||f.label)+'</th>'+cell(p.A,f)+cell(p.B,f)+'</tr>').join("")).join("");
+    return '<details class="code-row"><summary><span class="big">'+code+'</span><span class="reveal"><span class="reveal-show">Show answer key</span><span class="reveal-hide">Hide answer key</span></span></summary>'
+      +'<div class="key-wrap"><table class="key"><thead><tr><th></th><th>Student A</th><th>Student B</th></tr></thead><tbody>'+rows+'</tbody></table></div></details>';
+  }).join("");
+  $("#codesEmpty").hidden=true; $("#printBtn").hidden=false; tone(600,.1,"triangle",.1);
+});
+$("#printBtn").addEventListener("click",()=>{
+  if(!classCodes.length) return;
+  $("#printArea").innerHTML=classCodes.map(code=>{
+    const p=makePair(code);
+    return ["A","B"].map(role=>{
+      const partner=p[role==="A"?"B":"A"].spoken;
+      const table=MODS.filter(m=>p.mask&m.bit).map(m=>'<tr class="sec"><th colspan="2">'+m.t+'</th></tr>'+p.fields.filter(f=>f.m===m.bit).map(f=>'<tr><th>'+esc(f.short||f.label)+'<small>'+esc(qText(f,partner))+'</small></th><td>&nbsp;</td></tr>').join("")).join("")
+        +(p.lie?'<tr class="sec"><th colspan="2">Spot the lie</th></tr><tr><th>Which answer was a lie?</th><td>&nbsp;</td></tr>':'');
+      return '<section class="print-sheet"><h3>Pair '+code+', Student '+role+'</h3>'+renderCard(p,role,code)
+        +'<div class="partner-page"><h3>Pair '+code+', Student '+role+': your partner</h3><table class="print-table">'+table+'</table></div></section>';
+    }).join("");
+  }).join("");
+  window.print();
+});
+
+try{
+  const q=new URLSearchParams(location.search), c=q.get("code"), r=(q.get("role")||"").toUpperCase();
+  if(c&&(r==="A"||r==="B")){ $("#codeInput").value=prettyCode(c); openStudent(normCode(c),r); }
+}catch(e){}
+})();
+</script>
+</body>
+</html>
