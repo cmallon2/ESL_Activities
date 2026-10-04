@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blobs &amp; Lines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F5FB; --card:#FFFFFF; --ink:#1A1D3A; --muted:#5A5F80; --rule:#DADFEF;
+  --blob:#E8357A; --blob-soft:#FFD6E5; --line:#2F5BFF; --line-soft:#D9E2FF; --sun:#FFC83D;
+  --dot1:#E8357A; --dot2:#2F5BFF; --dot3:#F2A900; --dot4:#13A88A;
+  --display:"Bricolage Grotesque", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --body:"Atkinson Hyperlegible", Verdana, "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15172B; --card:#1F2242; --ink:#F1F2FA; --muted:#A9ADCD; --rule:#363A60;
+    --blob:#FF6FA3; --blob-soft:#4C2238; --line:#7D97FF; --line-soft:#252D63; --sun:#FFD15C;
+    --dot1:#FF6FA3; --dot2:#7D97FF; --dot3:#FFD15C; --dot4:#3DD6B2;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15172B; --card:#1F2242; --ink:#F1F2FA; --muted:#A9ADCD; --rule:#363A60;
+  --blob:#FF6FA3; --blob-soft:#4C2238; --line:#7D97FF; --line-soft:#252D63; --sun:#FFD15C;
+  --dot1:#FF6FA3; --dot2:#7D97FF; --dot3:#FFD15C; --dot4:#3DD6B2;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:8px}
+[hidden]{display:none !important}
+
+.wrap{max-width:1280px;margin:0 auto;padding:18px clamp(14px,3vw,36px) 28px}
+
+/* header */
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+.mark{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,3vw,2.2rem);letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:.25em}
+.mark .b{color:var(--blob);background:var(--blob-soft);padding:.08em .38em .14em;border-radius:999px}
+.mark .amp{color:var(--muted);font-weight:600}
+.mark .l{color:var(--line);border-bottom:.14em solid var(--line);padding:0 .06em}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.lvl{font-weight:700;color:var(--muted);padding:6px 4px}
+.lvl b{color:var(--ink)}
+.ghost{border:2px solid var(--rule);background:var(--card);border-radius:999px;padding:7px 16px;cursor:pointer;font-weight:700}
+.ghost:hover{border-color:var(--muted)}
+.ghost[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+
+/* ===== setup screen ===== */
+.setup{margin-top:20px;background:var(--card);border:2px solid var(--rule);border-radius:28px;padding:clamp(18px,3vw,40px)}
+.setup h1{font-family:var(--display);font-weight:800;font-size:clamp(1.9rem,3.6vw,2.8rem);letter-spacing:-.02em;margin:0 0 4px;line-height:1.1}
+.setup .lead{color:var(--muted);margin:0 0 24px;max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 36px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{font-family:var(--display);font-weight:800;font-size:1.2rem;padding:0;margin-bottom:8px}
+.hint{color:var(--muted);font-size:.92rem;margin:6px 0 0}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pills label{position:relative;display:block}
+.pills input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.pills span{display:block;padding:8px 16px;border:2px solid var(--rule);border-radius:14px;font-weight:700;background:var(--bg);line-height:1.25}
+.pills span small{display:block;font-weight:400;font-size:.85rem;color:var(--muted)}
+.pills input:checked + span{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pills input:checked + span small{color:var(--bg);opacity:.8}
+.pills input:focus-visible + span{outline:3px solid var(--sun);outline-offset:2px}
+.pills.level span{min-width:150px;padding:10px 18px}
+.rounds{display:flex;align-items:center;gap:16px}
+.rounds input[type=range]{flex:1;accent-color:var(--line);height:28px}
+.rounds output{font-family:var(--display);font-weight:800;font-size:2.2rem;min-width:2ch;text-align:right;font-variant-numeric:tabular-nums}
+.check-line{display:flex;align-items:center;gap:10px;margin-top:10px;font-weight:700;cursor:pointer}
+.check-line input{width:22px;height:22px;accent-color:var(--line)}
+.setup-foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin-top:30px;padding-top:22px;border-top:2px solid var(--rule)}
+.match{font-weight:700}
+.match.warn{color:var(--blob)}
+
+/* ===== game stage ===== */
+.game{margin-top:20px;background:var(--card);border:2px solid var(--rule);border-radius:28px;padding:clamp(18px,3vw,40px);position:relative;overflow:hidden}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.kind{display:inline-flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:1.25rem;padding:6px 18px 6px 8px;border-radius:999px}
+.kind svg{width:30px;height:30px}
+.kind.blob{background:var(--blob-soft);color:var(--blob)}
+.kind.line{background:var(--line-soft);color:var(--line)}
+.count{color:var(--muted);font-weight:700}
+.progress{display:flex;gap:5px;margin-top:12px}
+.progress i{flex:1;height:6px;border-radius:3px;background:var(--rule)}
+.progress i.on{background:var(--ink)}
+.silent-banner{display:none;margin-top:14px;background:var(--sun);color:#1A1D3A;font-weight:700;border-radius:14px;padding:8px 16px;width:fit-content}
+.game.silent .silent-banner{display:block}
+h2.prompt{font-family:var(--display);font-weight:800;font-size:clamp(2rem,5.2vw,4.4rem);line-height:1.05;letter-spacing:-.025em;margin:18px 0 6px;max-width:22ch;text-wrap:balance}
+.stage{width:100%;max-height:300px;display:block;margin:6px 0 4px}
+.stage .dot{transition:transform .9s cubic-bezier(.55,.05,.25,1.15)}
+.stage .zone{transition:opacity .6s ease .35s}
+.stage text{font-family:var(--display);font-weight:600;fill:var(--muted);font-size:15px}
+
+.info{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;margin-top:8px}
+.info.nosay{grid-template-columns:1fr}
+.panel{border-radius:20px;padding:18px 22px;background:var(--bg)}
+.panel h3{font-family:var(--display);font-size:1.1rem;font-weight:800;margin:0 0 8px;color:var(--muted)}
+.say p{margin:.15em 0;font-size:clamp(1.15rem,1.9vw,1.55rem);line-height:1.35}
+.say .q{font-weight:700}
+.say .a{color:var(--muted)}
+.say .a b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-weight:700;font-size:1.1rem;padding:6px 14px;border-radius:999px;background:var(--blob-soft);color:var(--blob)}
+.ends{display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.15rem;flex-wrap:wrap}
+.ends .bar{flex:1;min-width:40px;height:6px;background:var(--line);border-radius:3px;position:relative}
+.ends .bar::after{content:"";position:absolute;right:-2px;top:-6px;border:9px solid transparent;border-left-color:var(--line);border-right:0}
+.check{display:none;margin-top:18px;border-left:8px solid var(--sun);background:var(--bg);border-radius:0 18px 18px 0;padding:14px 22px;font-size:clamp(1.1rem,1.8vw,1.4rem)}
+.check.show{display:block}
+.check strong{font-family:var(--display)}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px;margin-top:20px}
+.nav{display:flex;flex-wrap:wrap;gap:10px}
+.btn{border-radius:16px;padding:12px 22px;font-weight:700;cursor:pointer;background:var(--card);border:2px solid var(--rule)}
+.btn:hover{border-color:var(--muted)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);padding:12px 34px;font-family:var(--display);font-size:1.15rem}
+.timer{display:flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--rule);border-radius:18px;padding:6px 8px 6px 18px}
+.clock{font-family:var(--display);font-weight:800;font-size:2rem;font-variant-numeric:tabular-nums;min-width:4.2ch;text-align:center}
+.timer.urgent .clock{color:var(--blob)}
+.timer.done{border-color:var(--sun);background:var(--sun);color:#1A1D3A}
+.timer button{border:0;background:var(--bg);border-radius:12px;padding:8px 12px;cursor:pointer;font-weight:700}
+.timer .go{background:var(--ink);color:var(--bg);min-width:5ch}
+.timer.done button{background:#fff;color:#1A1D3A}
+.keys{color:var(--muted);font-size:.9rem;margin-top:14px}
+.keys kbd{font-family:var(--body);font-weight:700;border:1.5px solid var(--rule);border-bottom-width:3px;border-radius:6px;padding:0 6px;background:var(--card)}
+
+/* end screen */
+.end{margin-top:20px;background:var(--card);border:2px solid var(--rule);border-radius:28px;padding:clamp(28px,5vw,64px);text-align:center}
+.end h2{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,5vw,4rem);letter-spacing:-.025em;margin:0 0 8px;line-height:1.05}
+.end p{color:var(--muted);font-size:1.2rem;margin:0 auto 26px;max-width:46ch}
+.end .acts{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+
+/* add-your-own */
+dialog{border:0;border-radius:24px;padding:0;max-width:min(560px,94vw);width:100%;background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(20,22,45,.55)}
+.dlg{padding:26px 28px}
+.dlg h2{font-family:var(--display);font-weight:800;margin:0 0 4px;font-size:1.6rem}
+.dlg p.sub{color:var(--muted);margin:0 0 16px}
+.field{display:block;margin-bottom:12px}
+.field span{display:block;font-weight:700;font-size:.95rem;margin-bottom:4px}
+.field input,.field select{width:100%;border:2px solid var(--rule);border-radius:12px;padding:9px 12px;background:var(--bg)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dlg .acts{display:flex;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap}
+.err{color:var(--blob);font-weight:700;min-height:1.4em;margin:0}
+.mine{margin-top:14px;border-top:2px solid var(--rule);padding-top:12px;max-height:160px;overflow:auto}
+.mine h3{font-family:var(--display);font-size:1.1rem;margin:0 0 6px}
+.mine ul{list-style:none;margin:0;padding:0}
+.mine li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:4px 0}
+.mine button{border:0;background:none;color:var(--blob);font-weight:700;cursor:pointer}
+
+@media (max-width:820px){
+  .grid{grid-template-columns:1fr}
+  .info{grid-template-columns:1fr}
+  .controls{flex-direction:column;align-items:stretch}
+  .nav{justify-content:space-between}
+  .timer{justify-content:space-between}
+  .keys{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .stage .dot,.stage .zone{transition:none}
+}
+</style>
+</head>
+<body data-screen="setup">
+<div class="wrap">
+  <header>
+    <div class="mark" aria-label="Blobs and Lines"><span class="b">Blobs</span><span class="amp">&amp;</span><span class="l">Lines</span></div>
+    <div class="tools" id="gameTools" hidden>
+      <span class="lvl" id="lvlTag"></span>
+      <button class="ghost" id="silentBtn" aria-pressed="false">Silent round</button>
+      <button class="ghost" id="fsBtn">Full screen</button>
+      <button class="ghost" id="settingsBtn">Teacher settings</button>
+    </div>
+  </header>
+
+  <!-- ===== SETUP ===== -->
+  <section class="setup" id="setup">
+    <h1>Set up the game</h1>
+    <p class="lead">Choose a level and what kind of rounds you want. Your settings are remembered on this device.</p>
+    <div class="grid">
+      <fieldset>
+        <legend>Level</legend>
+        <div class="pills level" id="optLevel"></div>
+        <p class="hint">Changes the instructions, the sentence frames, and the follow-up task.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Number of rounds</legend>
+        <div class="rounds"><input type="range" id="optRounds" min="1" max="20" aria-label="Number of rounds"><output id="roundsOut"></output></div>
+        <p class="hint" id="roundsHint"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Round types</legend>
+        <div class="pills" id="optTypes"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Topics</legend>
+        <div class="pills" id="optTopics"></div>
+      </fieldset>
+      <fieldset>
+        <legend>Language support</legend>
+        <div class="pills" id="optSupport"></div>
+        <p class="hint">You can still change this during the game.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Silent rounds</legend>
+        <div class="pills" id="optSilent"></div>
+        <p class="hint">In a silent round, students organize themselves with gestures only.</p>
+      </fieldset>
+      <fieldset>
+        <legend>Timer for each round</legend>
+        <div class="pills" id="optTimer"></div>
+        <label class="check-line"><input type="checkbox" id="optAuto"> Start the timer automatically</label>
+      </fieldset>
+      <fieldset>
+        <legend>Extras</legend>
+        <label class="check-line"><input type="checkbox" id="optCheck"> Show the "Check it" follow-up task</label>
+        <label class="check-line"><input type="checkbox" id="optSound"> Sound effects</label>
+        <div style="margin-top:14px"><button class="btn" id="addBtn" type="button">Add your own prompts</button></div>
+      </fieldset>
+    </div>
+    <div class="setup-foot">
+      <span class="match" id="matchMsg"></span>
+      <button class="btn primary" id="startBtn">Start game</button>
+    </div>
+  </section>
+
+  <!-- ===== GAME ===== -->
+  <section id="gameScreen" hidden>
+    <div class="game" id="game" aria-live="polite">
+      <div class="meta">
+        <div class="kind" id="kind"></div>
+        <div class="count" id="count"></div>
+      </div>
+      <div class="progress" id="progress"></div>
+      <div class="silent-banner">Silent round: no talking. Use your hands, fingers, and faces.</div>
+      <h2 class="prompt" id="prompt"></h2>
+
+      <svg class="stage" id="stage" viewBox="0 0 600 220" role="img" aria-label="Students moving into groups or a line">
+        <g id="zones"></g>
+        <g id="dots"></g>
+      </svg>
+
+      <div class="info" id="info">
+        <section class="panel say" id="sayPanel">
+          <h3>Ask and answer</h3>
+          <p class="q" id="ask"></p>
+          <p class="a" id="answer"></p>
+        </section>
+        <section class="panel">
+          <h3 id="whereTitle"></h3>
+          <div id="where"></div>
+        </section>
+      </div>
+      <div class="check" id="check"></div>
+    </div>
+
+    <div class="controls">
+      <div class="nav">
+        <button class="btn" id="prevBtn">Back</button>
+        <button class="btn primary" id="nextBtn">Next round</button>
+        <button class="btn" id="sayBtn">Language: full</button>
+        <button class="btn" id="checkBtn" aria-pressed="false">Check it</button>
+      </div>
+      <div class="timer" id="timer">
+        <span class="clock" id="clock">1:00</span>
+        <button data-sec="30">30 s</button>
+        <button data-sec="60">1 min</button>
+        <button data-sec="120">2 min</button>
+        <button class="go" id="goBtn">Start</button>
+      </div>
+    </div>
+    <p class="keys"><kbd>Space</kbd> or <kbd>→</kbd> next &nbsp; <kbd>←</kbd> back &nbsp; <kbd>C</kbd> check it &nbsp; <kbd>L</kbd> language support &nbsp; <kbd>T</kbd> start or pause timer &nbsp; <kbd>F</kbd> full screen</p>
+  </section>
+
+  <!-- ===== END ===== -->
+  <section class="end" id="endScreen" hidden>
+    <h2>That's a wrap.</h2>
+    <p id="endMsg"></p>
+    <div class="acts">
+      <button class="btn primary" id="againBtn">Play again</button>
+      <button class="btn" id="changeBtn">Change settings</button>
+    </div>
+  </section>
+</div>
+
+<dialog id="dlg">
+  <form class="dlg" method="dialog" id="addForm" novalidate>
+    <h2>Add your own prompt</h2>
+    <p class="sub">Your prompts appear at every level under the topic "Your prompts". Saved in this browser only.</p>
+    <label class="field"><span>Type</span>
+      <select id="fType"><option value="blob">Blob: get into groups</option><option value="line">Line: get in order</option></select>
+    </label>
+    <label class="field"><span>Instruction on screen</span>
+      <input id="fPrompt" placeholder="Find people who have the same favorite food as you.">
+    </label>
+    <div id="fBlobFields">
+      <label class="field"><span>Groups (separate with commas, up to 6)</span>
+        <input id="fGroups" placeholder="Rice, Bread, Noodles, Other">
+      </label>
+    </div>
+    <div id="fLineFields" class="row2" hidden>
+      <label class="field"><span>One end</span><input id="fFrom" placeholder="Shortest"></label>
+      <label class="field"><span>Other end</span><input id="fTo" placeholder="Longest"></label>
+    </div>
+    <label class="field"><span>Question students ask</span>
+      <input id="fAsk" placeholder="What's your favorite food?">
+    </label>
+    <label class="field"><span>Answer frame (put the blank as ___)</span>
+      <input id="fAnswer" placeholder="My favorite food is ___.">
+    </label>
+    <label class="field"><span>Check it task (optional)</span>
+      <input id="fCheck" placeholder="Each group: name one dish everyone likes.">
+    </label>
+    <p class="err" id="fErr"></p>
+    <div class="acts">
+      <button class="btn" value="cancel" formnovalidate>Close</button>
+      <button class="btn primary" id="saveBtn" value="default">Add prompt</button>
+    </div>
+    <div class="mine" id="mine" hidden><h3>Your prompts</h3><ul id="mineList"></ul></div>
+  </form>
+</dialog>
+
+<script>
+/* ============================================================
+   PROMPT BANK
+   t: blob | line     cat: topic     lv: levels (b, i, a)
+   p: instruction     s: [question, answer frame]     c: check-it task
+   p, s and c can be one value for all levels, or {b, i, a}.
+   ============================================================ */
+const AGREE = {from:"Strongly disagree", to:"Strongly agree"};
+const BANK = [
+  // ---------- ABOUT ME ----------
+  {t:"blob",cat:"me",lv:"bia",g:["Spring","Summer","Fall","Winter"],
+   p:{b:"Favorite season? Find your group.",i:"Find people who like the same season as you.",a:"Find the people who share your favorite season."},
+   s:{b:["What's your favorite season?","My favorite season is ___."],i:["Which season do you like best?","I like ___ best because ___."],a:["Which season suits you best, and why?","___ suits me because ___. What I love most is ___."]},
+   c:{b:"Each group: say your season together. One, two, three!",i:"Each group says one reason they love their season.",a:"Each group: agree on your strongest argument and pitch your season to the class."}},
+  {t:"blob",cat:"me",lv:"bia",g:["Africa","Asia","Europe","N. America","S. America","Oceania"],
+   p:{b:"Where are you from? Find your group.",i:"Find people born on the same continent as you.",a:"Group up by the continent where you were born."},
+   s:{b:["Where are you from?","I'm from ___."],i:["Where were you born?","I was born in ___. It's in ___."],a:["Where did you grow up?","I grew up in ___, and I lived there until ___."]},
+   c:{b:"Each person: say your country.",i:"Each group: say one food from your countries.",a:"Each group: find one thing all your countries have in common."}},
+  {t:"blob",cat:"me",lv:"bia",g:["2","3","4","5 or more"],
+   p:{b:"How many languages do you speak? Find your group.",i:"Group up by how many languages you speak.",a:"Group up by the number of languages you can hold a conversation in."},
+   s:{b:["How many languages do you speak?","I speak ___ languages."],i:["How many languages do you speak?","I speak ___: ___, ___, and English."],a:["Which languages do you speak, and which was hardest to learn?","I speak ___. ___ was the hardest because ___."]},
+   c:{b:"Each person: say your languages.",i:"Biggest group: name all the languages you speak together.",a:"Each group: when do you switch languages during a normal day?"}},
+  {t:"blob",cat:"me",lv:"bia",g:["Cats","Dogs","Other pets","No pets"],
+   p:{b:"Cats or dogs? Find your group.",i:"Cats, dogs, or no pets? Find your group.",a:"Are you a cat person, a dog person, or neither? Find your group."},
+   s:{b:["Do you like cats or dogs?","I like ___."],i:["Do you prefer cats or dogs?","I prefer ___ because ___."],a:["Are you more of a cat person or a dog person?","I'm definitely a ___ person. They suit my lifestyle because ___."]},
+   c:{b:"Each group: make your animal's sound!",i:"Each group: give one good reason for your choice.",a:"Each group: what does your choice say about your personality?"}},
+  {t:"blob",cat:"me",lv:"bi",g:["A to F","G to L","M to R","S to Z"],
+   p:{b:"What letter does your name start with? Find your group.",i:"Group up by the first letter of your first name."},
+   s:{b:["What's your name? How do you spell it?","My name is ___. ___-___-___."],i:["What's your first name? How do you spell it?","My name is ___. It's spelled ___."]},
+   c:"Each group: spell every name in your group out loud."},
+  {t:"line",cat:"me",lv:"bia",from:"January 1",to:"December 31",
+   p:{b:"Birthday line! From January to December.",i:"Line up by birthday, from January to December.",a:"Line up by birthday, January to December. The year doesn't matter."},
+   s:{b:["When is your birthday?","My birthday is in ___ (March)."],i:["When is your birthday?","It's on ___ (March 5th)."],a:["When's your birthday, and how do you usually celebrate?","It's on ___. I usually ___."]},
+   c:{b:"Say your birthday month. Same month? Stand together.",i:"Start at the front. Each person says their birthday. Any twins?",a:"Each person: share your birthday and your best birthday memory in one sentence."}},
+  {t:"line",cat:"me",lv:"bi",from:"A",to:"Z",
+   p:{b:"Name line! From A to Z.",i:"Line up by first name, from A to Z."},
+   s:{b:["What's your name?","My name is ___."],i:["What's your first name?","My name is ___. That's ___ (spell it)."]},
+   c:"Start at A. Each person says and spells their name."},
+  {t:"line",cat:"me",lv:"bia",from:"None",to:"The most",
+   p:{b:"Brothers and sisters? Line up from none to most.",i:"Line up by number of brothers and sisters.",a:"Line up by how many siblings you have."},
+   s:{b:["Do you have brothers or sisters?","I have ___ brother(s) and ___ sister(s)."],i:["How many brothers and sisters do you have?","I have ___. / I'm an only child."],a:["Where are you in your family: oldest, middle, or youngest?","I'm the ___, which means ___."]},
+   c:{b:"Each person: say your number.",i:"Each person answers. Who is the oldest child in their family?",a:"Oldest children, find each other. Do you agree on anything? Discuss for one minute."}},
+  {t:"line",cat:"me",lv:"bia",from:"Fewest",to:"Most",
+   p:{b:"Years of English? Line up from few to many.",i:"Line up by how many years you've studied English.",a:"Line up by how long you've been learning English."},
+   s:{b:["How long do you study English?","I study English for ___ years."],i:["How long have you been studying English?","I've been studying English for ___ years."],a:["How long have you been learning English, and where did it start?","I've been learning for ___ years. I started ___."]},
+   c:{b:"Each person: say your number.",i:"Each person answers. Where did you first study English?",a:"Each person: what has been the most useful way to improve your English?"}},
+  {t:"line",cat:"me",lv:"ia",from:"Fewest",to:"Most",
+   p:"Line up by how many countries you've visited.",
+   s:{i:["How many countries have you been to?","I've been to ___ countries."],a:["How many countries have you been to, and which one surprised you most?","I've been to ___. ___ surprised me because ___."]},
+   c:{i:"End of the line: name your favorite country you've visited.",a:"Each person: one place you'd recommend and one you wouldn't."}},
+  {t:"line",cat:"me",lv:"b",from:"Shortest",to:"Longest",
+   p:"How many letters are in your name? Line up!",
+   s:["How many letters are in your name?","My name has ___ letters."],
+   c:"Each person says and spells their name. Same number? Stand together."},
+
+  // ---------- DAILY LIFE ----------
+  {t:"blob",cat:"daily",lv:"bia",g:["Walk","Bus","Train","Car","Bike"],
+   p:{b:"How do you come to school? Find your group.",i:"Group up by how you got to class today.",a:"Group up by how you got here today."},
+   s:{b:["How do you come to school?","I come by ___. / I walk."],i:["How did you get here today?","I came by ___. It took ___ minutes."],a:["What's your commute like?","I ___ here. It's ___, but the worst part is ___."]},
+   c:{b:"Each group: how many people?",i:"Each group: who had the longest trip?",a:"Each group: what would make your commute better?"}},
+  {t:"blob",cat:"daily",lv:"bia",g:["Early bird","In between","Night owl"],
+   p:{b:"Morning person or night person? Find your group.",i:"Are you an early bird or a night owl? Find your people.",a:"Early bird or night owl? Find the people who share your rhythm."},
+   s:{b:["Do you like morning or night?","I like ___."],i:["Are you a morning person or a night person?","I'm a ___ person. I usually wake up at ___."],a:["When do you do your best work?","I'm most productive ___, because ___."]},
+   c:{b:"Each group: what time do you go to bed?",i:"Each group: what's the best time of day to study?",a:"Each group: should workplaces adjust schedules to people's rhythms? Decide."}},
+  {t:"blob",cat:"daily",lv:"ia",g:["Outside","At home","With friends","Exercise","Screens"],
+   p:"Group up by your favorite way to relax after work.",
+   s:{i:["How do you relax after work?","After work, I usually ___."],a:["What helps you switch off after a long day?","What really helps me unwind is ___."]},
+   c:{i:"Each group: what's the best way to relax on a Sunday?",a:"Each group: is your way of relaxing actually restful? Defend it."}},
+  {t:"blob",cat:"daily",lv:"ia",g:["Text","Call","Voice message","Video call"],
+   p:{i:"Text or call? Find people who agree with you.",a:"How do you prefer to keep in touch? Find your group."},
+   s:{i:["Do you prefer to text or call?","I'd rather ___ because it's ___."],a:["What's your preferred way to keep in touch, and why?","I tend to ___, mainly because ___."]},
+   c:{i:"Each group: when is your choice a bad idea?",a:"Each group: when is it rude to use the other methods?"}},
+  {t:"blob",cat:"daily",lv:"b",g:["Black","White","Blue","Red","Other"],
+   p:"What color is your shirt? Find your group.",
+   s:["What color is your shirt?","My shirt is ___."],
+   c:"Each group: say your color together. Count your group."},
+  {t:"line",cat:"daily",lv:"bia",from:"Earliest",to:"Latest",
+   p:{b:"What time do you get up? Line up!",i:"Line up by what time you woke up this morning.",a:"Line up by what time you got up this morning."},
+   s:{b:["What time do you get up?","I get up at ___."],i:["What time did you wake up today?","I woke up at ___."],a:["What time did you get up, and what's the first thing you did?","I got up at ___, and the first thing I did was ___."]},
+   c:{b:"Each person: say your time.",i:"Each person says their time. What did the earliest person do first?",a:"Each person: describe your ideal morning routine in one sentence."}},
+  {t:"line",cat:"daily",lv:"bia",from:"Closest",to:"Farthest",
+   p:{b:"Your home is near or far? Line up!",i:"Line up by how far you live from school.",a:"Line up by how far you live from here."},
+   s:{b:["Where do you live?","I live in ___. It's ___ minutes."],i:["How far do you live from here?","I live about ___ minutes away."],a:["How far away do you live, and would you move closer?","I live about ___ away. I would / wouldn't move because ___."]},
+   c:{b:"Each person: say your minutes.",i:"Each person says their distance. Is it farther than the person next to you?",a:"Front and back of the line: compare a day in your neighborhoods."}},
+  {t:"line",cat:"daily",lv:"bi",from:"Fewest",to:"Most",
+   p:{b:"Hours of sleep last night? Line up!",i:"Line up by how many hours you slept last night."},
+   s:{b:["How many hours do you sleep?","I sleep ___ hours."],i:["How many hours did you sleep last night?","I slept about ___ hours."]},
+   c:{b:"Each person: say your number.",i:"Each person answers. Why did the first person sleep so little?"}},
+  {t:"line",cat:"daily",lv:"ia",from:"Fewest",to:"Most",
+   p:"Line up by how many hours you spent on your phone yesterday.",
+   s:{i:["How much time did you spend on your phone yesterday?","I spent about ___ hours on my phone."],a:["How much screen time did you have yesterday, honestly?","Honestly, probably about ___ hours, mostly on ___."]},
+   c:{i:"Each person answers. Which app did you use most?",a:"End of the line: is that too much? Front of the line: how do you do it?"}},
+
+  // ---------- FOOD & DRINK ----------
+  {t:"blob",cat:"food",lv:"bia",g:["Coffee","Tea","Water","Juice","Nothing"],
+   p:{b:"Coffee or tea? Find your group.",i:"Group up by what you drink in the morning.",a:"Group up by what you drink first thing in the morning."},
+   s:{b:["What do you drink in the morning?","I drink ___."],i:["What do you usually drink in the morning?","I usually drink ___. / I don't drink anything."],a:["How do you take your morning drink?","I always have ___ with ___. I can't function without it."]},
+   c:{b:"Each group: how many cups a day?",i:"Each group: add up how many cups you drink a day.",a:"Each group: describe the perfect morning drink in detail."}},
+  {t:"blob",cat:"food",lv:"bia",g:["Sweet","Salty","Spicy","Sour"],
+   p:{b:"Sweet or salty? Find your group.",i:"Sweet or salty? Find your snack team.",a:"Which flavor do you crave most? Find your snack team."},
+   s:{b:["Do you like sweet or salty food?","I like ___ food."],i:["What kind of snacks do you like?","I'm a ___ person. My favorite snack is ___."],a:["What do you crave when you're stressed?","When I'm stressed, I always reach for ___."]},
+   c:{b:"Each group: say one snack.",i:"Each group: name your favorite snack from home.",a:"Each group: design a new snack and sell it to the class."}},
+  {t:"blob",cat:"food",lv:"b",g:["Apples","Bananas","Oranges","Grapes","Mangoes"],
+   p:"Favorite fruit? Find your group.",
+   s:["What's your favorite fruit?","My favorite fruit is ___."],
+   c:"Each group: say your fruit together. Count your group."},
+  {t:"blob",cat:"food",lv:"ia",g:["Breakfast","Lunch","Dinner","Snacks"],
+   p:"Which meal matters most to you? Find your group.",
+   s:{i:["Which meal is most important to you?","For me, ___ is the most important meal."],a:["Which meal could you never skip?","I could never skip ___, because ___."]},
+   c:{i:"Each group: describe a perfect version of that meal.",a:"Each group: convince the class your meal is the most important."}},
+  {t:"line",cat:"food",lv:"bia",from:"Not at all",to:"The hotter the better",
+   p:{b:"Spicy food? Line up from no to yes!",i:"Line up by how much you like spicy food.",a:"Line up by how much heat you can handle."},
+   s:{b:["Do you like spicy food?","Yes, I do. / No, I don't. / A little."],i:["How do you feel about spicy food?","I love it. / It's OK. / I can't eat it."],a:["What's the spiciest thing you've ever eaten?","The spiciest thing I've ever eaten was ___. It was ___."]},
+   c:{b:"Each end: say one spicy food.",i:"Each end: describe the spiciest food you've ever eaten.",a:"Fold the line: pair up with the opposite end and recommend a dish to each other."}},
+  {t:"line",cat:"food",lv:"bia",from:"Never cook",to:"Love cooking",
+   p:{b:"Do you cook? Line up from never to always.",i:"Line up by how much you like to cook.",a:"Line up by how much you enjoy cooking."},
+   s:{b:["Do you cook?","I cook ___ (every day / sometimes / never)."],i:["Do you like cooking?","I ___ cook. I usually make ___."],a:["What's your signature dish?","My signature dish is ___. The secret is ___."]},
+   c:{b:"End of the line: what do you cook?",i:"End of the line: what's your best dish?",a:"End of the line: explain how to make your best dish in 30 seconds."}},
+
+  // ---------- WORK & STUDY ----------
+  {t:"blob",cat:"work",lv:"bia",g:["Health","Business","Tech","Education","Arts","Trades"],
+   p:{b:"Your dream job? Find your group.",i:"Group up by the field of your dream job.",a:"Group up by the field you'd most like to work in."},
+   s:{b:["What's your dream job?","I want to be a ___."],i:["What's your dream job?","I'd like to work in ___. I want to be a ___."],a:["If you could have any career, what would it be?","I'd love to ___, because ___."]},
+   c:{b:"Each person: say your dream job.",i:"Each group: what skill is most important for your field?",a:"Each group: what will your field look like in 20 years?"}},
+  {t:"blob",cat:"work",lv:"bia",g:["Reading","Listening","Writing","Speaking"],
+   p:{b:"How do you learn new words? Find your group.",i:"Group up by how you learn new words best.",a:"Group up by the way you remember new vocabulary best."},
+   s:{b:["How do you learn new words?","I learn new words by ___."],i:["How do you learn new words?","I learn best by ___ing."],a:["What's your most effective vocabulary strategy?","What works best for me is ___, because ___."]},
+   c:{b:"Each group: say one new English word.",i:"Each group: share one study tip with the class.",a:"Each group: design a one-week vocabulary plan for a new student."}},
+  {t:"blob",cat:"work",lv:"ia",g:["I plan everything","A little of both","I go with the flow"],
+   p:"Planner or go-with-the-flow? Find your group.",
+   s:{i:["Do you plan your week?","I always / sometimes / never plan my week."],a:["How do you organize your week?","I tend to ___. It works because ___, but sometimes ___."]},
+   c:{i:"Each group: one good thing and one bad thing about your style.",a:"Each group: which style makes a better team leader? Give evidence."}},
+  {t:"blob",cat:"work",lv:"ia",g:["Communication","Technical skills","Teamwork","Problem-solving"],
+   p:{i:"Which skill is most important at work? Find your group.",a:"Which skill matters most when starting a new job? Find your group."},
+   s:{i:["What's the most important skill at work?","I think ___ is the most important because ___."],a:["Which skill matters most in a new job?","In my experience, ___ matters most, since ___."]},
+   c:{i:"Each group: give an example from a real job.",a:"Each group: how would you test for this skill in a job interview?"}},
+  {t:"blob",cat:"work",lv:"ia",g:["From home","In an office","A mix of both"],
+   p:{i:"Where do you like to work? Find your group.",a:"Where do you work best? Find your group."},
+   s:{i:["Do you prefer working from home or in an office?","I prefer ___ because ___."],a:["Where are you most productive?","I'm most productive ___. The main advantage is ___."]},
+   c:{i:"Each group: one advantage and one disadvantage.",a:"Each group: what would make the other options work for you?"}},
+  {t:"line",cat:"work",lv:"ia",from:"Today",to:"A long time ago",
+   p:"Line up by when you last read a book.",
+   s:{i:["When did you last read a book?","I read one ___ ago. It was called ___."],a:["What was the last book you read, and would you recommend it?","The last book I read was ___. I'd / I wouldn't recommend it because ___."]},
+   c:{i:"Front of the line: what are you reading? Recommend it.",a:"Each person: one book that changed how you think."}},
+  {t:"line",cat:"work",lv:"ia",from:"Fewest",to:"Most",
+   p:{i:"Line up by how many years you've worked, in any job.",a:"Line up by your total years of work experience."},
+   s:{i:["How long have you worked?","I've worked for ___ years. My first job was ___."],a:["What was your first job, and what did it teach you?","My first job was ___. It taught me ___."]},
+   c:{i:"Each person: say your first job.",a:"Each person: one piece of advice for someone starting their first job."}},
+
+  // ---------- OPINIONS & IDEAS ----------
+  {t:"line",cat:"opinion",lv:"ia",...AGREE,
+   p:{i:"Do you agree? \u201CEveryone should learn a second language as a child.\u201D",a:"How far do you agree? \u201CEveryone should learn a second language before age ten.\u201D"},
+   s:{i:["Do you agree?","I agree / disagree because ___."],a:["How far do you agree?","I partly agree. On the one hand ___, but on the other hand ___."]},
+   c:{i:"Each end: give one reason. Did anyone change their mind?",a:"Fold the line: pair up with the opposite end and try to persuade each other."}},
+  {t:"line",cat:"opinion",lv:"ia",...AGREE,
+   p:{i:"Do you agree? \u201CMoney is the most important thing in a job.\u201D",a:"How far do you agree? \u201CSalary matters more than job satisfaction.\u201D"},
+   s:{i:["Do you agree?","I agree / disagree because ___."],a:["Where do you stand?","I'd argue that ___. That said, ___."]},
+   c:{i:"Middle of the line: explain why you're in the middle.",a:"Fold the line: debate in pairs for one minute, then report what the other person said."}},
+  {t:"line",cat:"opinion",lv:"a",...AGREE,
+   p:"How far do you agree? \u201CAI will make most jobs easier, not replace them.\u201D",
+   s:["How far do you agree?","I'm fairly convinced that ___. However, it depends on ___."],
+   c:"Fold the line: pair up with the opposite end. Each person summarizes the other's view before giving their own."},
+  {t:"line",cat:"opinion",lv:"a",...AGREE,
+   p:"How far do you agree? \u201CSocial media does more harm than good.\u201D",
+   s:["Where do you stand?","On balance, I think ___, mainly because ___."],
+   c:"Each end chooses a speaker. Thirty seconds each, then anyone can move."},
+  {t:"blob",cat:"opinion",lv:"a",g:["The 1960s","The 1980s","Today","50 years from now"],
+   p:"If you could live in any time, when would it be? Find your group.",
+   s:["If you could live in any time, when would it be?","If I could choose, I'd live in ___, because ___."],
+   c:"Each group: what would you miss most from today?"},
+  {t:"blob",cat:"opinion",lv:"a",g:["Talk right away","Wait a day","Ask a manager","Write an email"],
+   p:"A coworker takes credit for your idea. What do you do first? Find your group.",
+   s:["What would you do first?","I'd probably ___, because if I ___, ___."],
+   c:"Each group: role-play the first 20 seconds of your response."}
+];
+const TOPICS = {me:"About me",daily:"Daily life",food:"Food & drink",work:"Work & study",opinion:"Opinions & ideas",custom:"Your prompts"};
+const LEVELS = {b:{name:"Beginner",cefr:"A1 to A2"},i:{name:"Intermediate",cefr:"B1"},a:{name:"Advanced",cefr:"B2 to C1"}};
+
+/* ============================================================
+   SETTINGS
+   ============================================================ */
+const DEFAULTS = {level:"i",rounds:8,types:"both",topics:["me","daily","food","work","opinion","custom"],support:"full",silent:"none",timer:60,auto:false,check:true,sound:true};
+let S = {...DEFAULTS};
+try{ Object.assign(S, JSON.parse(localStorage.getItem("bl-settings")||"{}")); }catch(e){}
+const saveSettings = ()=>{ try{ localStorage.setItem("bl-settings", JSON.stringify(S)); }catch(e){} };
+
+let custom = [];
+try{ custom = JSON.parse(localStorage.getItem("bl-custom2")||"[]"); }catch(e){}
+try{ // carry over prompts saved by the first version
+  const old = JSON.parse(localStorage.getItem("bl-custom")||"[]");
+  if(old.length && !custom.length){
+    custom = old.map(o=>({t:o.type,cat:"custom",lv:"bia",p:o.prompt,g:o.groups,from:o.from,to:o.to,s:[o.ask||"",o.answer||""],c:o.check}));
+    localStorage.setItem("bl-custom2", JSON.stringify(custom));
+  }
+}catch(e){}
+const saveCustom = ()=>{ try{ localStorage.setItem("bl-custom2", JSON.stringify(custom)); }catch(e){} };
+const all = ()=> BANK.concat(custom);
+
+const pick = (f,l)=> f==null ? "" : (typeof f==="string" || Array.isArray(f)) ? f : (f[l] ?? f.i ?? f.b ?? f.a);
+function matching(){
+  return all().filter(p => p.lv.includes(S.level) && S.topics.includes(p.cat) && (S.types==="both" || p.t===S.types));
+}
+
+/* ---------- setup UI ---------- */
+const $ = id => document.getElementById(id);
+function pills(container, name, type, options, isOn, onChange){
+  container.innerHTML = "";
+  options.forEach(([val,label,sub])=>{
+    const lab = document.createElement("label");
+    const inp = document.createElement("input");
+    inp.type = type; inp.name = name; inp.value = val; inp.checked = isOn(val);
+    inp.onchange = ()=>{ onChange(val, inp.checked); refreshSetup(); };
+    const sp = document.createElement("span");
+    sp.textContent = label;
+    if(sub){ const sm=document.createElement("small"); sm.textContent=sub; sp.appendChild(sm); }
+    lab.append(inp, sp); container.appendChild(lab);
+  });
+}
+function buildSetup(){
+  pills($("optLevel"),"level","radio",Object.entries(LEVELS).map(([k,v])=>[k,v.name,v.cefr]),v=>S.level===v,v=>{S.level=v;});
+  pills($("optTypes"),"types","radio",[["both","Blobs and lines"],["blob","Blobs only"],["line","Lines only"]],v=>S.types===v,v=>{S.types=v;});
+  pills($("optTopics"),"topics","checkbox",Object.entries(TOPICS),v=>S.topics.includes(v),(v,on)=>{
+    S.topics = on ? [...new Set([...S.topics,v])] : S.topics.filter(x=>x!==v);
+  });
+  pills($("optSupport"),"support","radio",[["full","Question and answer"],["question","Question only"],["none","None"]],v=>S.support===v,v=>{S.support=v;});
+  pills($("optSilent"),"silent","radio",[["none","None"],["some","Every third round"],["all","Every round"]],v=>S.silent===v,v=>{S.silent=v;});
+  pills($("optTimer"),"timer","radio",[["0","Off"],["30","30 sec"],["60","1 min"],["90","1.5 min"],["120","2 min"],["180","3 min"]],v=>String(S.timer)===v,v=>{S.timer=+v;});
+  $("optAuto").checked = S.auto; $("optAuto").onchange = e=>{S.auto=e.target.checked; refreshSetup();};
+  $("optCheck").checked = S.check; $("optCheck").onchange = e=>{S.check=e.target.checked; refreshSetup();};
+  $("optSound").checked = S.sound; $("optSound").onchange = e=>{S.sound=e.target.checked; refreshSetup();};
+  $("optRounds").oninput = e=>{ S.rounds=+e.target.value; refreshSetup(); };
+  refreshSetup();
+}
+function refreshSetup(){
+  const n = matching().length;
+  const r = $("optRounds");
+  r.max = Math.max(1, Math.min(n, 40));
+  r.disabled = n===0;
+  if(S.rounds > n && n>0) S.rounds = n;
+  if(S.rounds < 1) S.rounds = 1;
+  r.value = S.rounds;
+  $("roundsOut").textContent = n ? S.rounds : 0;
+  $("roundsHint").textContent = n ? `Up to ${n} with these settings.` : "";
+  $("optAuto").disabled = S.timer===0;
+  const m = $("matchMsg");
+  if(!S.topics.length){ m.textContent = "Choose at least one topic."; m.className="match warn"; }
+  else if(!n){ m.textContent = `No ${S.types==="both"?"":S.types+" "}prompts for ${LEVELS[S.level].name.toLowerCase()} in these topics. Add a topic or change the round types.`; m.className="match warn"; }
+  else { m.textContent = `${n} prompt${n===1?"":"s"} match. The game will use ${S.rounds}.`; m.className="match"; }
+  $("startBtn").disabled = !n;
+  saveSettings();
+}
+
+/* ============================================================
+   GAME
+   ============================================================ */
+let deck = [], pos = 0, showCheck = false, support = "full";
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function buildDeck(){
+  const pool = matching();
+  let ordered;
+  if(S.types==="both"){
+    const bl = shuffle(pool.filter(p=>p.t==="blob")), li = shuffle(pool.filter(p=>p.t==="line"));
+    ordered = []; let turn = Math.random()<.5;
+    while(bl.length || li.length){
+      const src = (turn && bl.length) || !li.length ? bl : li;
+      ordered.push(src.shift()); turn = !turn;
+    }
+  } else ordered = shuffle(pool);
+  deck = ordered.slice(0, S.rounds).map((p,i)=>({p, silent: S.silent==="all" || (S.silent==="some" && i%3===2)}));
+  pos = 0;
+}
+function show(screen){
+  document.body.dataset.screen = screen;
+  $("setup").hidden = screen!=="setup";
+  $("gameScreen").hidden = screen!=="game";
+  $("endScreen").hidden = screen!=="end";
+  $("gameTools").hidden = screen==="setup";
+  window.scrollTo(0,0);
+}
+function startGame(){
+  buildDeck();
+  if(!deck.length) return;
+  support = S.support; showCheck = false;
+  $("lvlTag").innerHTML = `<b>${LEVELS[S.level].name}</b> ${LEVELS[S.level].cefr}`;
+  $("checkBtn").hidden = !S.check;
+  $("timer").hidden = S.timer===0;
+  show("game");
+  renderRound(true);
+}
+
+/* ---------- stage animation ---------- */
+function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const N = 18, NS = "http://www.w3.org/2000/svg";
+const dotsG = $("dots"), zonesG = $("zones");
+const dotColors = ["var(--dot1)","var(--dot2)","var(--dot3)","var(--dot4)"];
+const dots = [];
+for(let i=0;i<N;i++){
+  const c = document.createElementNS(NS,"circle");
+  c.setAttribute("r","9"); c.setAttribute("class","dot");
+  c.style.fill = dotColors[i%4];
+  const r = rng(i*97+3);
+  c.style.transform = `translate(${40+r()*520}px, ${30+r()*160}px)`;
+  dotsG.appendChild(c); dots.push(c);
+}
+function el(tag, attrs, text){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(text!=null) e.textContent=text; return e; }
+function fadeIn(e){ requestAnimationFrame(()=>requestAnimationFrame(()=>e.setAttribute("opacity",1))); }
+function drawStage(p){
+  zonesG.innerHTML = "";
+  const r = Math.random;
+  const ids = shuffle([...Array(N).keys()]);
+  if(p.t==="blob"){
+    const k = Math.min(Math.max(p.g.length,2),6);
+    const R = Math.min(62, 600/k/2 - 8);
+    const counts = Array(k).fill(0), centers = [];
+    for(let g=0; g<k; g++){
+      const cx = 600*(g+.5)/k, cy = 92 + (g%2 ? 10 : -6);
+      centers.push([cx,cy]);
+      const z = el("ellipse",{cx, cy, rx:R+4, ry:R*0.92, class:"zone", fill:"var(--blob-soft)", opacity:0});
+      zonesG.appendChild(z); fadeIn(z);
+      const label = p.g[g] || "";
+      const t = el("text",{x:cx, y:200, "text-anchor":"middle", class:"zone", opacity:0}, label.length>14 ? label.slice(0,13)+"…" : label);
+      if(k>4) t.style.fontSize = "12px";
+      zonesG.appendChild(t); fadeIn(t);
+    }
+    ids.forEach((id,n)=>{
+      const g = n<k ? n : Math.floor(r()*k);
+      const j = counts[g]++;
+      const ang = j*2.399, rad = Math.min(R-12, 13*Math.sqrt(j));
+      const [cx,cy] = centers[g];
+      dots[id].style.transform = `translate(${cx+Math.cos(ang)*rad}px, ${cy+Math.sin(ang)*rad}px)`;
+    });
+  } else {
+    const y = 96;
+    zonesG.appendChild(el("rect",{x:26,y:y-3,width:548,height:6,rx:3,fill:"var(--line)",opacity:.35}));
+    zonesG.appendChild(el("path",{d:`M574 ${y-10} L590 ${y} L574 ${y+10} Z`,fill:"var(--line)",opacity:.6}));
+    zonesG.appendChild(el("text",{x:26,y:150,"text-anchor":"start"}, p.from));
+    zonesG.appendChild(el("text",{x:590,y:150,"text-anchor":"end"}, p.to));
+    ids.forEach((id,i)=>{ dots[id].style.transform = `translate(${40 + i*(520/(N-1))}px, ${y}px)`; });
+  }
+}
+
+/* ---------- round rendering ---------- */
+const BLOB_ICON = '<svg viewBox="0 0 30 30" aria-hidden="true"><path fill="currentColor" d="M15 3c6 0 11 4 11 10s-3 13-11 13S4 21 4 15 9 3 15 3Z" opacity=".25"/><circle cx="11" cy="13" r="3" fill="currentColor"/><circle cx="18" cy="12" r="3" fill="currentColor"/><circle cx="15" cy="19" r="3" fill="currentColor"/></svg>';
+const LINE_ICON = '<svg viewBox="0 0 30 30" aria-hidden="true"><rect x="2" y="14" width="26" height="2.5" rx="1.2" fill="currentColor" opacity=".35"/><circle cx="6" cy="15" r="3" fill="currentColor"/><circle cx="15" cy="15" r="3" fill="currentColor"/><circle cx="24" cy="15" r="3" fill="currentColor"/></svg>';
+const esc = s => String(s||"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const frame = s => esc(s).replace(/_{3,}/g,'<b>____</b>');
+const SUPPORT_LABEL = {full:"Language: full",question:"Language: question only",none:"Language: hidden"};
+
+function renderRound(fresh){
+  const {p, silent} = deck[pos];
+  const L = S.level, isBlob = p.t==="blob";
+  $("game").classList.toggle("silent", silent);
+  $("silentBtn").setAttribute("aria-pressed", silent);
+  $("kind").className = "kind " + p.t;
+  $("kind").innerHTML = isBlob ? BLOB_ICON+"Blob" : LINE_ICON+"Line";
+  $("count").textContent = `Round ${pos+1} of ${deck.length}`;
+  $("progress").innerHTML = deck.map((_,i)=>`<i class="${i<=pos?"on":""}"></i>`).join("");
+  $("prompt").textContent = pick(p.p, L);
+
+  const [ask, ans] = pick(p.s, L) || ["",""];
+  $("ask").textContent = ask || "";
+  $("answer").innerHTML = frame(ans);
+  $("answer").hidden = support!=="full" || !ans;
+  $("sayPanel").hidden = support==="none" || !ask;
+  $("info").classList.toggle("nosay", $("sayPanel").hidden);
+  $("sayBtn").textContent = SUPPORT_LABEL[support];
+
+  if(isBlob){
+    $("whereTitle").textContent = "Groups";
+    $("where").innerHTML = '<div class="chips">' + p.g.map(g=>`<span class="chip">${esc(g)}</span>`).join("") + "</div>";
+  } else {
+    $("whereTitle").textContent = "Line order";
+    $("where").innerHTML = `<div class="ends"><span>${esc(p.from)}</span><span class="bar"></span><span>${esc(p.to)}</span></div>`;
+  }
+  const chk = pick(p.c, L) || (isBlob ? "Each group says their group name and counts off." : "Start at the front. Each person says their answer.");
+  $("check").innerHTML = `<strong>Check it:</strong> ${frame(chk)}`;
+  $("check").classList.toggle("show", showCheck && S.check);
+  $("checkBtn").setAttribute("aria-pressed", showCheck);
+  $("prevBtn").disabled = pos===0;
+  $("nextBtn").textContent = pos===deck.length-1 ? "Finish" : "Next round";
+  if(fresh){
+    drawStage(p);
+    if(S.timer){ resetTimer(S.timer); if(S.auto) startPause(); }
+  }
+}
+
+/* ---------- audio ---------- */
+let ac;
+function tone(freq, dur, when=0, type="sine", vol=.18){
+  if(!S.sound) return;
+  try{
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    const t = ac.currentTime + when, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t+.015);
+    g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t+dur+.05);
+  }catch(e){}
+}
+const sNext = ()=>{ tone(523,.12,0,"triangle",.12); tone(784,.18,.07,"triangle",.12); };
+const sTick = ()=> tone(1200,.05,0,"square",.05);
+const sDone = ()=>{ [659,784,1047,1319].forEach((f,i)=>tone(f,.45,i*.13,"triangle",.16)); };
+const sFinish = ()=>{ [523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.3,i*.11,"triangle",.14)); };
+
+/* ---------- navigation ---------- */
+function next(){
+  if(pos === deck.length-1){ stopTimer(); sFinish(); finish(); return; }
+  pos++; showCheck=false; sNext(); renderRound(true);
+}
+function back(){ if(pos>0){ pos--; showCheck=false; sNext(); renderRound(true); } }
+function finish(){
+  const lv = LEVELS[S.level];
+  $("endMsg").textContent = `${deck.length} round${deck.length===1?"":"s"} at ${lv.name.toLowerCase()} level. Play again with new prompts, or change the settings.`;
+  show("end");
+}
+$("nextBtn").onclick = next;
+$("prevBtn").onclick = back;
+$("checkBtn").onclick = ()=>{ showCheck=!showCheck; renderRound(false); };
+$("sayBtn").onclick = cycleSupport;
+function cycleSupport(){ support = {full:"question",question:"none",none:"full"}[support]; renderRound(false); }
+$("silentBtn").onclick = ()=>{ deck[pos].silent = !deck[pos].silent; renderRound(false); };
+$("settingsBtn").onclick = ()=>{ stopTimer(); show("setup"); refreshSetup(); };
+$("startBtn").onclick = startGame;
+$("againBtn").onclick = startGame;
+$("changeBtn").onclick = ()=>{ show("setup"); refreshSetup(); };
+$("fsBtn").onclick = toggleFS;
+function toggleFS(){
+  try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }catch(e){}
+}
+
+/* ---------- timer ---------- */
+let left = 60, total = 60, tid = null;
+const fmt = s => `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+function paintTimer(){
+  $("clock").textContent = fmt(left);
+  $("timer").classList.toggle("urgent", left<=10 && left>0 && !!tid);
+  $("goBtn").textContent = tid ? "Pause" : (left===0 ? "Reset" : "Start");
+}
+function stopTimer(){ clearInterval(tid); tid=null; paintTimer(); }
+function resetTimer(sec){ clearInterval(tid); tid=null; total=left=sec; $("timer").classList.remove("done"); paintTimer(); }
+function startPause(){
+  if(tid){ stopTimer(); return; }
+  if(left===0){ resetTimer(total); return; }
+  tone(880,.08,0,"sine",.08);
+  tid = setInterval(()=>{
+    left--;
+    if(left<=5 && left>0) sTick();
+    if(left<=0){ left=0; clearInterval(tid); tid=null; sDone(); $("timer").classList.add("done"); }
+    paintTimer();
+  },1000);
+  paintTimer();
+}
+$("goBtn").onclick = startPause;
+document.querySelectorAll(".timer [data-sec]").forEach(b=> b.onclick = ()=> resetTimer(+b.dataset.sec));
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown", e=>{
+  if(document.body.dataset.screen!=="game" || $("dlg").open || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if(e.key===" " && e.target.tagName==="BUTTON") return;
+  const k = e.key.toLowerCase();
+  if(k==="arrowright" || k===" "){ e.preventDefault(); next(); }
+  else if(k==="arrowleft") back();
+  else if(k==="c" && S.check){ showCheck=!showCheck; renderRound(false); }
+  else if(k==="l") cycleSupport();
+  else if(k==="t" && S.timer) startPause();
+  else if(k==="f") toggleFS();
+});
+
+/* ---------- add your own ---------- */
+const dlg = $("dlg");
+$("addBtn").onclick = ()=>{ $("fErr").textContent=""; paintMine(); dlg.showModal(); };
+$("fType").onchange = ()=>{
+  const blob = $("fType").value==="blob";
+  $("fBlobFields").hidden = !blob; $("fLineFields").hidden = blob;
+};
+function paintMine(){
+  $("mine").hidden = !custom.length;
+  $("mineList").innerHTML = "";
+  custom.forEach((p,i)=>{
+    const li = document.createElement("li");
+    li.innerHTML = `<span>${p.t==="blob"?"Blob":"Line"}: ${esc(p.p)}</span>`;
+    const del = document.createElement("button"); del.type="button"; del.textContent="Delete";
+    del.onclick = ()=>{ custom.splice(i,1); saveCustom(); paintMine(); refreshSetup(); };
+    li.appendChild(del); $("mineList").appendChild(li);
+  });
+}
+$("saveBtn").onclick = e=>{
+  e.preventDefault();
+  const t = $("fType").value, prompt = $("fPrompt").value.trim();
+  if(!prompt){ $("fErr").textContent = "Add the instruction students will see."; return; }
+  const p = {t, cat:"custom", lv:"bia", p:prompt, s:[$("fAsk").value.trim(), $("fAnswer").value.trim()], c:$("fCheck").value.trim()||undefined};
+  if(t==="blob"){
+    p.g = $("fGroups").value.split(",").map(s=>s.trim()).filter(Boolean).slice(0,6);
+    if(p.g.length<2){ $("fErr").textContent = "Add at least two groups, separated by commas."; return; }
+  } else {
+    p.from = $("fFrom").value.trim(); p.to = $("fTo").value.trim();
+    if(!p.from || !p.to){ $("fErr").textContent = "Name both ends of the line."; return; }
+  }
+  custom.push(p); saveCustom();
+  if(!S.topics.includes("custom")) S.topics.push("custom");
+  ["fPrompt","fGroups","fFrom","fTo","fAsk","fAnswer","fCheck"].forEach(id=>$(id).value="");
+  $("fErr").textContent = "Added. Add another, or close.";
+  paintMine(); buildSetup();
+};
+
+/* ---------- start ---------- */
+buildSetup();
+show("setup");
+</script>
+</body>
+</html>
