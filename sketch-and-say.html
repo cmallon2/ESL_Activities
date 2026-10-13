@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sketch &amp; Say</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E8EE; --surface:#F7F9FB; --ink:#1B1F27; --muted:#5A6372; --line:#C3CAD4;
+  --accent:#1E5BD8; --good:#1F9D55; --bad:#D7263D;
+  --hand:'Patrick Hand','Comic Neue','Segoe Print','Chalkboard SE',cursive;
+  --ui:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#171B22; --surface:#222833; --ink:#E9EDF3; --muted:#9AA4B3; --line:#394150;
+    --accent:#6E9BFF; --good:#3CCB7F; --bad:#FF5A6E;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171B22; --surface:#222833; --ink:#E9EDF3; --muted:#9AA4B3; --line:#394150;
+  --accent:#6E9BFF; --good:#3CCB7F; --bad:#FF5A6E;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:17px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.screen{display:none;height:100%}
+.screen.on{display:block}
+#game.on{display:grid}
+
+/* ---------- setup ---------- */
+#setup{overflow-y:auto}
+.wrap{max-width:760px;margin:0 auto;padding:32px 20px 56px}
+.title{font-family:var(--hand);font-size:clamp(3.2rem,9vw,5.5rem);line-height:1;margin:0;font-weight:400}
+.title svg{display:block;width:min(420px,80%);height:18px;margin-top:2px}
+.lede{font-size:1.2rem;color:var(--muted);margin:14px 0 28px}
+.how{background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:16px 20px;margin-bottom:28px}
+.how p{margin:0 0 8px;max-width:68ch}
+.how p:last-child{margin:0}
+fieldset{border:none;padding:0;margin:0 0 24px}
+legend{font-weight:700;font-size:1.1rem;margin-bottom:10px;padding:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+.field label{display:block;font-size:.95rem;color:var(--muted);margin-bottom:4px}
+.field select,.field input{width:100%;padding:9px 10px;border:2px solid var(--line);border-radius:8px;background:var(--surface)}
+#teamNames{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.tn{display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:8px;background:var(--surface);padding:4px 10px}
+.tn input{border:none;background:transparent;padding:6px 0;width:100%}
+.tn input:focus-visible{outline:none}
+.tn:focus-within{border-color:var(--tc)}
+.dot{width:14px;height:14px;border-radius:50%;background:var(--tc);flex:none}
+.checks label{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.checks input{width:20px;height:20px;accent-color:var(--accent)}
+details{background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:12px 16px}
+summary{font-weight:700;cursor:pointer}
+.banks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.banks label{font-size:.95rem;color:var(--muted)}
+.banks textarea{width:100%;height:220px;border:2px solid var(--line);border-radius:8px;background:var(--bg);padding:8px;font-size:.95rem;resize:vertical}
+.hint{font-size:.9rem;color:var(--muted);margin:8px 0 0}
+.big{font-family:var(--hand);font-size:1.9rem;padding:10px 34px;border-radius:12px;border:3px solid var(--ink);background:var(--ink);color:var(--bg);margin-top:8px}
+.big:hover{transform:translateY(-1px)}
+.err{color:var(--bad);font-weight:700;min-height:1.4em;margin:10px 0 0}
+
+/* ---------- game ---------- */
+#game{grid-template-rows:auto 1fr auto;gap:10px;padding:10px 14px;height:100%}
+.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.roundlbl{font-family:var(--hand);font-size:1.6rem;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px;flex:1;min-width:0}
+.chip{display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:999px;padding:3px 12px 3px 8px;background:var(--surface);font-size:.95rem;transition:background .2s,border-color .2s}
+.chip b{font-size:1.15rem;min-width:1.2em;text-align:right}
+.chip.active{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 18%,var(--surface));font-weight:700}
+.chip.bump b{animation:bump .5s}
+@keyframes bump{40%{transform:scale(1.5)}}
+.timer{position:relative;width:64px;height:64px;flex:none}
+.timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.timer circle{fill:none;stroke-width:6}
+.timer .track{stroke:var(--line)}
+.timer .ring{stroke:var(--ink);stroke-linecap:round;transition:stroke-dashoffset .1s linear,stroke .3s}
+.timer.low .ring{stroke:var(--bad)}
+.timer span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--hand);font-size:1.7rem}
+.timer.low span{color:var(--bad)}
+.small{border:2px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 12px;font-size:.9rem}
+
+.stage{display:grid;grid-template-columns:1fr auto;gap:10px;min-height:0}
+.paper{position:relative;background:#fff;border-radius:6px;box-shadow:0 0 0 2px var(--line),0 6px 0 -2px var(--line);overflow:hidden;min-height:0}
+#board{position:absolute;inset:0;touch-action:none;cursor:crosshair;display:block}
+.panel{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.95);color:#1B1F27;padding:16px;overflow:auto}
+.panel.on{display:flex}
+.card{text-align:center;max-width:640px;width:100%}
+.card h2{font-family:var(--hand);font-weight:400;font-size:clamp(2rem,5vw,3.2rem);line-height:1.05;margin:4px 0 8px}
+.card p{margin:0 auto 14px;max-width:52ch;color:#4A5260}
+.teamtag{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.15rem;color:var(--tc)}
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:8px}
+.lvl{border:3px solid #1B1F27;border-radius:12px;background:#fff;padding:14px 10px;display:flex;flex-direction:column;gap:2px;align-items:center;color:#1B1F27}
+.lvl b{font-family:var(--hand);font-size:2rem;font-weight:400;line-height:1}
+.lvl span{font-size:.92rem;color:#4A5260}
+.lvl em{font-style:normal;font-weight:700;margin-top:4px}
+.lvl:hover:not(:disabled){background:#F1F4F8}
+.lvl:disabled{opacity:.35;cursor:not-allowed}
+.hold{display:block;width:100%;min-height:150px;border:3px dashed #1B1F27;border-radius:14px;background:#F1F4F8;color:#1B1F27;margin:6px 0 16px;user-select:none;-webkit-user-select:none;touch-action:none}
+.hold .word{display:none;font-family:var(--hand);font-size:clamp(2.4rem,7vw,4.4rem);line-height:1.05;padding:10px}
+.hold .cover{font-size:1.1rem;font-weight:700}
+.hold.show{border-style:solid;background:#FFF6CC}
+.hold.show .word{display:block}
+.hold.show .cover{display:none}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{border:3px solid #1B1F27;border-radius:10px;padding:10px 22px;background:#fff;color:#1B1F27;font-weight:700}
+.btn.go{background:#1B1F27;color:#fff}
+.btn.good{background:#1F9D55;border-color:#1F9D55;color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.answer{font-family:var(--hand);font-size:clamp(2.2rem,6vw,3.6rem);line-height:1;margin:2px 0 10px;color:#1B1F27}
+.pts{display:inline-block;font-weight:700;font-size:1.2rem;color:#1F9D55;margin-bottom:14px}
+.steals{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.steals .btn{border-color:var(--tc);color:var(--tc)}
+.steals .btn:hover{background:var(--tc);color:#fff}
+
+.tools{display:flex;flex-direction:column;gap:10px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 8px}
+.swatches,.sizes{display:grid;grid-template-columns:repeat(2,40px);gap:6px}
+.sw{width:40px;height:40px;border-radius:50%;border:3px solid var(--surface);background:var(--c);box-shadow:0 0 0 2px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.sz{width:40px;height:40px;border-radius:8px;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.sz i{display:block;border-radius:50%;background:var(--ink)}
+.sz[aria-pressed="true"],.tool[aria-pressed="true"]{border-color:var(--ink);background:color-mix(in srgb,var(--ink) 10%,var(--surface))}
+.tool{width:86px;border:2px solid var(--line);border-radius:8px;background:var(--surface);padding:7px 0;font-size:.9rem;font-weight:700}
+.tools hr{width:100%;border:none;border-top:2px solid var(--line);margin:0}
+
+.bottom{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.phrases{display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0}
+.phrases strong{font-size:.95rem}
+.phrases span{font-family:var(--hand);font-size:1.35rem;background:var(--surface);border:2px solid var(--line);border-radius:8px;padding:0 10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.act{border:3px solid var(--ink);border-radius:10px;padding:8px 18px;background:var(--surface);font-weight:700}
+.act.got{background:var(--good);border-color:var(--good);color:#fff;font-size:1.1rem;padding:8px 26px}
+.act:disabled{opacity:.35;cursor:default}
+.peekbox{position:absolute;top:10px;left:10px;background:#FFF6CC;border:2px solid #1B1F27;color:#1B1F27;border-radius:8px;padding:4px 12px;font-family:var(--hand);font-size:1.6rem;display:none;z-index:3}
+.peekbox.on{display:block}
+
+/* ---------- results ---------- */
+#over{overflow-y:auto}
+.winner{font-family:var(--hand);font-size:clamp(3rem,10vw,6rem);line-height:1;margin:6px 0 4px;color:var(--wc,var(--ink))}
+.standings{list-style:none;padding:0;margin:24px 0}
+.standings li{display:grid;grid-template-columns:2.2em 1fr auto;align-items:center;gap:10px;padding:10px 14px;border:2px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--surface)}
+.standings .place{font-family:var(--hand);font-size:1.6rem}
+.standings .nm{display:flex;align-items:center;gap:10px;font-weight:700}
+.standings .sc{font-family:var(--hand);font-size:1.8rem}
+.tablewrap{overflow-x:auto;border:2px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:700}
+tr:last-child td{border-bottom:none}
+.endrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+
+@media (max-width:720px){
+  .stage{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .tools{flex-direction:row;flex-wrap:wrap;justify-content:center}
+  .swatches{grid-template-columns:repeat(6,36px)}
+  .sizes{grid-template-columns:repeat(3,36px)}
+  .sw,.sz{width:36px;height:36px}
+  .tools hr{display:none}
+  .tool{width:auto;padding:7px 12px}
+  .phrases span{font-size:1.15rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ================= SETUP ================= -->
+<section id="setup" class="screen on" aria-label="Game setup">
+  <div class="wrap">
+    <h1 class="title">Sketch &amp; Say
+      <svg viewBox="0 0 420 18" preserveAspectRatio="none" aria-hidden="true"><path d="M4 12 C 80 4, 160 16, 240 8 S 380 6, 416 11" fill="none" stroke="#D7263D" stroke-width="5" stroke-linecap="round"/></svg>
+    </h1>
+    <p class="lede">Draw it. Guess it out loud. Say it in a sentence.</p>
+
+    <div class="how">
+      <p>Teams take turns. One drawer from the team comes up, picks a level, and secretly reads the word. Their team guesses out loud before time runs out. No letters, numbers or talking from the drawer.</p>
+      <p>Easy words score 1 point, medium 2, hard 3. If the team then uses the word in a correct sentence, add a 1-point bonus. If time runs out, another team can steal for 1 point.</p>
+      <p>Mixed-level teams work well here: weaker speakers can draw easy words, stronger ones can take on idioms.</p>
+    </div>
+
+    <fieldset>
+      <legend>Teams</legend>
+      <div class="grid2" style="margin-bottom:14px">
+        <div class="field"><label for="teamCount">Number of teams</label>
+          <select id="teamCount"><option>2</option><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></div>
+        <div class="field"><label for="teamSize">Players per team</label>
+          <input id="teamSize" type="number" min="1" max="40" value="11"></div>
+      </div>
+      <div id="teamNames"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Game</legend>
+      <div class="grid2">
+        <div class="field"><label for="rounds">Rounds (every team draws once per round)</label>
+          <select id="rounds"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option><option>11</option></select></div>
+        <div class="field"><label for="seconds">Time per drawing</label>
+          <select id="seconds"><option value="45">45 seconds</option><option value="60">60 seconds</option><option value="90" selected>90 seconds</option><option value="120">2 minutes</option></select></div>
+      </div>
+      <div class="checks" style="margin-top:14px">
+        <label><input type="checkbox" id="phrases" checked> Show guessing phrases under the board</label>
+        <label><input type="checkbox" id="sound" checked> Sound effects</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <details>
+        <summary>Edit the word lists</summary>
+        <div class="banks">
+          <div><label for="wEasy">Easy, 1 point</label><textarea id="wEasy" spellcheck="false"></textarea></div>
+          <div><label for="wMedium">Medium, 2 points</label><textarea id="wMedium" spellcheck="false"></textarea></div>
+          <div><label for="wHard">Hard, 3 points</label><textarea id="wHard" spellcheck="false"></textarea></div>
+        </div>
+        <p class="hint">One word or phrase per line. Words don't repeat until a list runs out. Leave a list empty to hide that level.</p>
+      </details>
+    </fieldset>
+
+    <button class="big" id="startBtn">Start game</button>
+    <p class="err" id="setupErr" role="alert"></p>
+  </div>
+</section>
+
+<!-- ================= GAME ================= -->
+<section id="game" class="screen" aria-label="Game">
+  <div class="top">
+    <div class="roundlbl" id="roundLbl">Round 1 of 3</div>
+    <div class="chips" id="chips"></div>
+    <button class="small" id="endBtn">End game</button>
+    <div class="timer" id="timer" aria-live="off">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle class="track" cx="32" cy="32" r="27"/><circle class="ring" id="ring" cx="32" cy="32" r="27"/></svg>
+      <span id="timeTxt">90</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="paper" id="paper">
+      <canvas id="board" aria-label="Drawing board"></canvas>
+      <div class="peekbox" id="peekBox"></div>
+      <div class="panel on" id="panel" aria-live="polite"></div>
+    </div>
+    <div class="tools" role="toolbar" aria-label="Drawing tools">
+      <div class="swatches" id="swatches"></div>
+      <hr>
+      <div class="sizes" id="sizes"></div>
+      <hr>
+      <button class="tool" id="tEraser" aria-pressed="false">Eraser</button>
+      <button class="tool" id="tUndo">Undo</button>
+      <button class="tool" id="tClear">Clear</button>
+    </div>
+  </div>
+
+  <div class="bottom">
+    <div class="phrases" id="phraseStrip">
+      <strong>Guess out loud:</strong>
+      <span>Is it a …?</span><span>I think it's …</span><span>It looks like …</span><span>Is she …ing?</span><span>Is it something you …?</span>
+    </div>
+    <div class="actions">
+      <button class="act" id="btnPeek" title="Press and hold">Teacher peek</button>
+      <button class="act" id="btnPause">Pause</button>
+      <button class="act" id="btnPass">Pass</button>
+      <button class="act got" id="btnGot">They got it!</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= RESULTS ================= -->
+<section id="over" class="screen" aria-label="Results">
+  <div class="wrap">
+    <p class="lede" style="margin:0" id="overSub">And the winner is</p>
+    <h1 class="winner" id="winner"></h1>
+    <ol class="standings" id="standings"></ol>
+    <h2 style="font-size:1.1rem">Every turn</h2>
+    <div class="tablewrap"><table id="history"></table></div>
+    <div class="endrow">
+      <button class="big" id="againBtn">Play again</button>
+      <button class="small" id="setupBtn">Change setup</button>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const COLORS = [
+  {n:'Red',c:'#D7263D'},{n:'Blue',c:'#1E5BD8'},{n:'Green',c:'#1F9D55'},{n:'Orange',c:'#E07A10'},
+  {n:'Purple',c:'#7B3FBF'},{n:'Teal',c:'#0E8C8C'},{n:'Pink',c:'#D63384'},{n:'Brown',c:'#8A5A2B'}
+];
+const LEVELS = {
+  easy:{label:'Easy',pts:1,desc:'Everyday things and actions'},
+  medium:{label:'Medium',pts:2,desc:'Places, jobs, events'},
+  hard:{label:'Hard',pts:3,desc:'Work life, ideas, idioms'}
+};
+const DEFAULT_WORDS = {
+  easy:['cat','dog','house','car','tree','sun','apple','fish','book','chair','phone','bed','shoe','clock','bird','banana','ball','door','hat','cake','bus','star','egg','key','cup','flower','moon','train','glasses','pizza','rain','bicycle','eye','hand','baby','teacher','swim','sleep','eat','run'],
+  medium:['umbrella','airport','birthday party','toothbrush','ladder','volcano','waterfall','traffic light','suitcase','dentist','camping','sandcastle','lighthouse','snowman','firefighter','wedding','scissors','headache','elevator','fishing','picnic','rainbow','robot','astronaut','pyramid','envelope','campfire','haircut','cooking','shopping cart','ice cream','washing machine','lightning','bridge','island','map','job interview','sunburn','homework','alarm clock'],
+  hard:['deadline','traffic jam','promotion','brainstorm','procrastinate','multitasking','commute','overtime','recycling','jet lag','eavesdrop','bargain','peer pressure','time zone','comfort zone','heartbreak','daydream','freedom','gravity','burnout','résumé','teamwork','networking','video call','coffee break','handshake','pay raise','work from home','break the ice','under the weather','piece of cake','raining cats and dogs','once in a blue moon','spill the beans','hit the road','cost an arm and a leg','on cloud nine','burn the midnight oil','time flies','couch potato']
+};
+$('#wEasy').value = DEFAULT_WORDS.easy.join('\n');
+$('#wMedium').value = DEFAULT_WORDS.medium.join('\n');
+$('#wHard').value = DEFAULT_WORDS.hard.join('\n');
+
+let cfg = {}, words = {}, game = null;
+
+/* ---------- sound ---------- */
+let actx = null;
+function ac(){
+  if (!cfg.sound) return null;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    return actx;
+  } catch(e){ return null; }
+}
+function tone(f, d, type='sine', vol=.2, when=0){
+  const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + when;
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .02);
+}
+const sfx = {
+  pop:()=>tone(660,.09,'sine',.15),
+  tick:()=>tone(1050,.05,'square',.06),
+  win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.28,'triangle',.18,i*.09)),
+  bonus:()=>{tone(880,.12,'triangle',.18);tone(1320,.2,'triangle',.15,.1)},
+  buzz:()=>{tone(140,.7,'sawtooth',.14);tone(147,.7,'sawtooth',.1)},
+  steal:()=>{tone(392,.15,'triangle',.2);tone(587,.3,'triangle',.2,.12)},
+  pass:()=>{tone(440,.12,'sine',.15);tone(330,.2,'sine',.15,.1)}
+};
+
+/* ---------- setup ---------- */
+function renderTeamInputs(){
+  const n = +$('#teamCount').value;
+  const old = [...document.querySelectorAll('.tname')].map(i => i.value);
+  $('#teamNames').innerHTML = COLORS.slice(0, n).map((c, i) =>
+    `<label class="tn" style="--tc:${c.c}"><span class="dot"></span><input class="tname" maxlength="20" aria-label="Team ${i+1} name" value="${esc(old[i] || c.n + ' team')}"></label>`
+  ).join('');
+}
+$('#teamCount').addEventListener('change', renderTeamInputs);
+renderTeamInputs();
+
+const parse = t => [...new Set(t.split('\n').map(s => s.trim()).filter(Boolean))];
+
+$('#startBtn').addEventListener('click', () => {
+  words = { easy: parse($('#wEasy').value), medium: parse($('#wMedium').value), hard: parse($('#wHard').value) };
+  if (!words.easy.length && !words.medium.length && !words.hard.length){
+    $('#setupErr').textContent = 'Add at least one word to a word list to start.';
+    return;
+  }
+  $('#setupErr').textContent = '';
+  const names = [...document.querySelectorAll('.tname')].map(i => i.value.trim());
+  cfg = {
+    teams: names.map((nm, i) => ({ name: nm || COLORS[i].n + ' team', color: COLORS[i].c, score: 0, turns: 0 })),
+    teamSize: Math.max(1, Math.min(40, parseInt($('#teamSize').value, 10) || 1)),
+    rounds: +$('#rounds').value,
+    seconds: +$('#seconds').value,
+    phrases: $('#phrases').checked,
+    sound: $('#sound').checked
+  };
+  ac(); // unlock audio on this click
+  newGame();
+});
+
+function newGame(keepUsed){
+  cfg.teams.forEach(t => { t.score = 0; t.turns = 0; });
+  game = { round: 1, team: 0, history: [], used: keepUsed && game ? game.used : new Set(), phase: 'pick', word: null, level: null };
+  $('#phraseStrip').style.display = cfg.phrases ? '' : 'none';
+  show('game');
+  fit();
+  renderTop();
+  newTurn();
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+}
+
+/* ---------- top bar ---------- */
+const curTeam = () => cfg.teams[game.team];
+function renderTop(bumpIdx){
+  $('#roundLbl').textContent = `Round ${game.round} of ${cfg.rounds}`;
+  $('#chips').innerHTML = cfg.teams.map((t, i) =>
+    `<div class="chip${i === game.team ? ' active' : ''}${i === bumpIdx ? ' bump' : ''}" style="--tc:${t.color}"><span class="dot"></span>${esc(t.name)} <b>${t.score}</b></div>`
+  ).join('');
+}
+
+/* ---------- timer ---------- */
+const C = 2 * Math.PI * 27;
+$('#ring').style.strokeDasharray = C;
+let tEnd = 0, tLeft = 0, tInt = null, paused = false, lastTick = null;
+function drawTimer(){
+  const frac = cfg.seconds ? tLeft / (cfg.seconds * 1000) : 1;
+  $('#ring').style.strokeDashoffset = C * (1 - frac);
+  const s = Math.ceil(tLeft / 1000);
+  $('#timeTxt').textContent = s;
+  $('#timer').classList.toggle('low', s <= 10 && game.phase === 'draw');
+}
+function resetTimer(){ stopTimer(); tLeft = cfg.seconds * 1000; paused = false; lastTick = null; drawTimer(); }
+function runTimer(){ paused = false; tEnd = Date.now() + tLeft; clearInterval(tInt); tInt = setInterval(updTimer, 100); updTimer(); }
+function pauseTimer(){ paused = true; tLeft = Math.max(0, tEnd - Date.now()); clearInterval(tInt); }
+function stopTimer(){ clearInterval(tInt); tInt = null; }
+function updTimer(){
+  tLeft = Math.max(0, tEnd - Date.now());
+  const s = Math.ceil(tLeft / 1000);
+  if (s <= 10 && s > 0 && s !== lastTick){ lastTick = s; sfx.tick(); }
+  drawTimer();
+  if (tLeft <= 0){ stopTimer(); timeUp(); }
+}
+
+/* ---------- canvas ---------- */
+const cv = $('#board'), ctx = cv.getContext('2d');
+const MARKERS = ['#1B1B1B','#D7263D','#1E5BD8','#1F9D55','#E07A10','#7B3FBF'];
+const SIZES = [4, 10, 22];
+let strokes = [], cleared = null, cur = null;
+const pen = { color: MARKERS[0], size: SIZES[1], eraser: false };
+let W = 0, H = 0;
+
+$('#swatches').innerHTML = MARKERS.map((c, i) => `<button class="sw" style="--c:${c}" data-c="${c}" aria-label="Marker colour ${i+1}" aria-pressed="${i===0}"></button>`).join('');
+$('#sizes').innerHTML = SIZES.map((s, i) => `<button class="sz" data-s="${s}" aria-label="${['Thin','Medium','Thick'][i]} line" aria-pressed="${i===1}"><i style="width:${Math.max(4,s*.9)}px;height:${Math.max(4,s*.9)}px"></i></button>`).join('');
+
+$('#swatches').addEventListener('click', e => {
+  const b = e.target.closest('.sw'); if (!b) return;
+  pen.color = b.dataset.c; pen.eraser = false;
+  document.querySelectorAll('.sw').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('#tEraser').setAttribute('aria-pressed', 'false');
+});
+$('#sizes').addEventListener('click', e => {
+  const b = e.target.closest('.sz'); if (!b) return;
+  pen.size = +b.dataset.s;
+  document.querySelectorAll('.sz').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+$('#tEraser').addEventListener('click', () => {
+  pen.eraser = !pen.eraser;
+  $('#tEraser').setAttribute('aria-pressed', pen.eraser);
+});
+$('#tUndo').addEventListener('click', undo);
+$('#tClear').addEventListener('click', () => {
+  if (!strokes.length) return;
+  cleared = strokes; strokes = []; redraw();
+});
+function undo(){
+  if (strokes.length) strokes.pop();
+  else if (cleared){ strokes = cleared; cleared = null; }
+  redraw();
+}
+
+function fit(){
+  const r = $('#paper').getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const dpr = window.devicePixelRatio || 1;
+  W = r.width; H = r.height;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  redraw();
+}
+window.addEventListener('resize', fit);
+
+function styleFor(s){
+  ctx.strokeStyle = ctx.fillStyle = s.eraser ? '#ffffff' : s.color;
+  ctx.lineWidth = s.size * Math.max(W, 300) / 1000 * (s.eraser ? 2.2 : 1);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+}
+function drawStroke(s){
+  const p = s.pts; if (!p.length) return;
+  styleFor(s);
+  if (p.length === 1){
+    ctx.beginPath(); ctx.arc(p[0][0]*W, p[0][1]*H, ctx.lineWidth/2, 0, Math.PI*2); ctx.fill(); return;
+  }
+  ctx.beginPath(); ctx.moveTo(p[0][0]*W, p[0][1]*H);
+  for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0]*W, p[i][1]*H);
+  ctx.stroke();
+}
+function redraw(){
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+  strokes.forEach(drawStroke);
+}
+function clearBoard(){ strokes = []; cleared = null; redraw(); }
+
+const canDraw = () => game && game.phase === 'draw' && !paused;
+function ptFrom(e){ const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; }
+cv.addEventListener('pointerdown', e => {
+  if (!canDraw()) return;
+  cv.setPointerCapture(e.pointerId);
+  cur = { color: pen.color, size: pen.size, eraser: pen.eraser, pts: [ptFrom(e)] };
+  strokes.push(cur); cleared = null; drawStroke(cur);
+});
+cv.addEventListener('pointermove', e => {
+  if (!cur) return;
+  const p = ptFrom(e), last = cur.pts[cur.pts.length - 1];
+  cur.pts.push(p);
+  styleFor(cur);
+  ctx.beginPath(); ctx.moveTo(last[0]*W, last[1]*H); ctx.lineTo(p[0]*W, p[1]*H); ctx.stroke();
+});
+['pointerup','pointercancel'].forEach(t => cv.addEventListener(t, () => { cur = null; }));
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && canDraw()){ e.preventDefault(); undo(); }
+});
+
+/* ---------- turn flow ---------- */
+const panelEl = $('#panel');
+function panel(html){ panelEl.innerHTML = html; panelEl.classList.add('on'); }
+function hidePanel(){ panelEl.classList.remove('on'); panelEl.innerHTML = ''; }
+function setActions(on){ ['#btnGot','#btnPass','#btnPause','#btnPeek'].forEach(s => $(s).disabled = !on); }
+const teamTag = t => `<span class="teamtag" style="--tc:${t.color}"><span class="dot"></span>${esc(t.name)}</span>`;
+
+function newTurn(){
+  clearBoard(); resetTimer(); setActions(false);
+  game.phase = 'pick'; game.word = null; game.level = null;
+  $('#btnPause').textContent = 'Pause';
+  const t = curTeam(), drawer = (t.turns % cfg.teamSize) + 1;
+  panel(`<div class="card">
+    ${teamTag(t)}
+    <h2>Drawer: player ${drawer}${cfg.teamSize > 1 ? ' of ' + cfg.teamSize : ''}</h2>
+    <p>Come to the board and choose a level.</p>
+    <div class="levels">${Object.entries(LEVELS).map(([k, L]) =>
+      `<button class="lvl" data-act="level" data-l="${k}" ${words[k].length ? '' : 'disabled'}><b>${L.label}</b><span>${L.desc}</span><em>${L.pts} point${L.pts > 1 ? 's' : ''}</em></button>`
+    ).join('')}</div>
+  </div>`);
+}
+
+function pickWord(l){
+  const key = w => l + '|' + w;
+  let pool = words[l].filter(w => !game.used.has(key(w)));
+  if (!pool.length){
+    words[l].forEach(w => game.used.delete(key(w)));
+    pool = words[l].filter(w => w !== game.word);
+    if (!pool.length) pool = words[l].slice();
+  }
+  const w = pool[Math.floor(Math.random() * pool.length)];
+  game.used.add(key(w));
+  return w;
+}
+
+function showReveal(){
+  panel(`<div class="card">
+    ${teamTag(curTeam())}
+    <h2>${LEVELS[game.level].label} word</h2>
+    <p>Only the drawer looks. If this screen is on the projector, freeze or blank it first.</p>
+    <button class="hold" data-hold><span class="cover">Press and hold to see your word</span><span class="word">${esc(game.word)}</span></button>
+    <div class="row">
+      <button class="btn" data-act="back">Change level</button>
+      <button class="btn" data-act="newword">Different word</button>
+      <button class="btn go" data-act="start">Start drawing</button>
+    </div>
+  </div>`);
+}
+
+function startDrawing(){
+  game.phase = 'draw';
+  hidePanel(); setActions(true); sfx.pop();
+  resetTimer(); runTimer();
+}
+
+function record(result, pts){
+  game.history.push({ round: game.round, team: game.team, word: game.word, level: game.level, result, pts, bonus: 0, steal: null });
+}
+
+function got(){
+  if (game.phase !== 'draw') return;
+  stopTimer(); setActions(false); game.phase = 'result';
+  const t = curTeam(), pts = LEVELS[game.level].pts;
+  t.score += pts; record('Guessed', pts);
+  sfx.win(); renderTop(game.team);
+  panel(`<div class="card">
+    ${teamTag(t)}
+    <h2>Correct!</h2>
+    <div class="answer">${esc(game.word)}</div>
+    <div class="pts">+${pts} point${pts > 1 ? 's' : ''}</div>
+    <p>Bonus: can someone on the team use it in a correct sentence?</p>
+    <div class="row">
+      <button class="btn good" data-act="bonus">Sentence bonus +1</button>
+      <button class="btn go" data-act="next">Next turn</button>
+    </div>
+  </div>`);
+}
+
+function timeUp(){
+  if (game.phase !== 'draw') return;
+  setActions(false); game.phase = 'result';
+  record('Time up', 0); sfx.buzz();
+  const others = cfg.teams.map((t, i) => ({ t, i })).filter(o => o.i !== game.team);
+  panel(`<div class="card">
+    <h2>Time's up</h2>
+    <p>Another team can steal. Click the team that says the word first, then reveal it.</p>
+    <div class="steals">${others.map(o =>
+      `<button class="btn" style="--tc:${o.t.color}" data-act="steal" data-t="${o.i}">${esc(o.t.name)} +1</button>`).join('')}</div>
+    <div class="row">
+      <button class="btn" data-act="reveal">Reveal the word</button>
+      <button class="btn go" data-act="next">No steal, next turn</button>
+    </div>
+  </div>`);
+}
+
+function pass(){
+  if (game.phase !== 'draw') return;
+  stopTimer(); setActions(false); game.phase = 'result';
+  record('Passed', 0); sfx.pass();
+  panel(`<div class="card">
+    <h2>Passed</h2>
+    <p>The word was</p>
+    <div class="answer">${esc(game.word)}</div>
+    <div class="row"><button class="btn go" data-act="next">Next turn</button></div>
+  </div>`);
+}
+
+function togglePause(){
+  if (game.phase !== 'draw') return;
+  if (!paused){
+    pauseTimer(); cur = null;
+    $('#btnPause').textContent = 'Resume';
+    panel(`<div class="card"><h2>Paused</h2><div class="row"><button class="btn go" data-act="resume">Resume</button></div></div>`);
+  } else {
+    hidePanel(); $('#btnPause').textContent = 'Pause'; runTimer();
+  }
+}
+
+function nextTurn(){
+  curTeam().turns++;
+  game.team++;
+  if (game.team >= cfg.teams.length){ game.team = 0; game.round++; }
+  if (game.round > cfg.rounds) return endGame();
+  renderTop(); newTurn();
+}
+
+panelEl.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const a = b.dataset.act;
+  if (a === 'level'){ game.level = b.dataset.l; game.word = pickWord(game.level); sfx.pop(); showReveal(); }
+  else if (a === 'newword'){ game.word = pickWord(game.level); showReveal(); }
+  else if (a === 'back'){ newTurn(); }
+  else if (a === 'start'){ startDrawing(); }
+  else if (a === 'next'){ nextTurn(); }
+  else if (a === 'resume'){ togglePause(); }
+  else if (a === 'bonus'){
+    curTeam().score += 1;
+    const h = game.history[game.history.length - 1]; h.bonus = 1; h.pts += 1;
+    sfx.bonus(); renderTop(game.team);
+    b.disabled = true; b.textContent = 'Bonus added';
+  }
+  else if (a === 'reveal'){
+    b.outerHTML = `<div class="answer" style="width:100%">${esc(game.word)}</div>`;
+  }
+  else if (a === 'steal'){
+    const i = +b.dataset.t, t = cfg.teams[i];
+    t.score += 1;
+    const h = game.history[game.history.length - 1]; h.steal = i;
+    sfx.steal(); renderTop(i);
+    panel(`<div class="card">
+      ${teamTag(t)}
+      <h2>Stolen!</h2>
+      <div class="answer">${esc(game.word)}</div>
+      <div class="pts">+1 point</div>
+      <div class="row"><button class="btn go" data-act="next">Next turn</button></div>
+    </div>`);
+  }
+});
+
+/* press-and-hold word card */
+const holdOn = e => { const h = e.target.closest('[data-hold]'); if (h){ e.preventDefault(); h.classList.add('show'); } };
+const holdOff = () => document.querySelectorAll('[data-hold].show').forEach(h => h.classList.remove('show'));
+panelEl.addEventListener('pointerdown', holdOn);
+['pointerup','pointercancel','pointerleave'].forEach(t => panelEl.addEventListener(t, holdOff));
+panelEl.addEventListener('contextmenu', e => { if (e.target.closest('[data-hold]')) e.preventDefault(); });
+panelEl.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && e.target.closest('[data-hold]')){ e.preventDefault(); e.target.closest('[data-hold]').classList.add('show'); } });
+panelEl.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') holdOff(); });
+
+/* action bar */
+$('#btnGot').addEventListener('click', got);
+$('#btnPass').addEventListener('click', pass);
+$('#btnPause').addEventListener('click', togglePause);
+const peek = $('#btnPeek'), peekBox = $('#peekBox');
+const peekOn = e => { if (e) e.preventDefault(); if (game && game.word && game.phase === 'draw'){ peekBox.textContent = game.word; peekBox.classList.add('on'); } };
+const peekOff = () => peekBox.classList.remove('on');
+peek.addEventListener('pointerdown', peekOn);
+['pointerup','pointercancel','pointerleave'].forEach(t => peek.addEventListener(t, peekOff));
+peek.addEventListener('contextmenu', e => e.preventDefault());
+peek.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') peekOn(e); });
+peek.addEventListener('keyup', peekOff);
+
+$('#endBtn').addEventListener('click', () => {
+  if (confirm('End the game now and show the results?')) endGame();
+});
+
+/* ---------- results ---------- */
+function endGame(){
+  stopTimer(); game.phase = 'over'; hidePanel();
+  const ranked = cfg.teams.map((t, i) => ({ ...t, i })).sort((a, b) => b.score - a.score);
+  const top = ranked[0].score, leaders = ranked.filter(t => t.score === top);
+  if (leaders.length > 1){
+    $('#overSub').textContent = "It's a tie between";
+    $('#winner').textContent = leaders.map(t => t.name).join(' & ');
+    $('#winner').style.removeProperty('--wc');
+  } else {
+    $('#overSub').textContent = 'And the winner is';
+    $('#winner').textContent = leaders[0].name;
+    $('#winner').style.setProperty('--wc', leaders[0].color);
+  }
+  let place = 0, prev = null;
+  $('#standings').innerHTML = ranked.map((t, idx) => {
+    if (t.score !== prev){ place = idx + 1; prev = t.score; }
+    return `<li><span class="place">${place}</span><span class="nm" style="--tc:${t.color}"><span class="dot"></span>${esc(t.name)}</span><span class="sc">${t.score}</span></li>`;
+  }).join('');
+  const rows = game.history.map(h => {
+    let res = h.result;
+    if (h.bonus) res += ' + sentence bonus';
+    if (h.steal !== null) res += `, stolen by ${esc(cfg.teams[h.steal].name)}`;
+    return `<tr><td>${h.round}</td><td>${esc(cfg.teams[h.team].name)}</td><td>${LEVELS[h.level].label}</td><td>${esc(h.word)}</td><td>${res}</td><td>${h.pts}</td></tr>`;
+  }).join('');
+  $('#history').innerHTML = `<thead><tr><th>Round</th><th>Team</th><th>Level</th><th>Word</th><th>Result</th><th>Points</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No turns played.</td></tr>'}</tbody>`;
+  show('over');
+  if (game.history.length) sfx.win();
+}
+$('#againBtn').addEventListener('click', () => newGame(true));
+$('#setupBtn').addEventListener('click', () => show('setup'));
+})();
+</script>
+</body>
+</html>
