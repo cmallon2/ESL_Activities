@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swat It! · Listening Team Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Domine:wght@500;700&family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F4EE; --surface:#FFFDF9; --ink:#0E2340; --muted:#4A5568; --line:#DCD5C7;
+  --navy:#0E2340; --on-navy:#F7F4EE; --on-navy-muted:#C9D3E3; --gold:#7A5C22; --gold-soft:#D2AE66;
+  --teamA:#1F5FA6; --teamA-soft:#E3ECF7; --teamB:#8A5F0E; --teamB-soft:#F6ECD6;
+  --good:#1E7A4C; --good-soft:#DDF1E5; --bad:#B23A2E; --bad-soft:#F8E1DE;
+  --focus:#1F5FA6; --shadow:rgba(14,35,64,.18);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1A30; --surface:#132745; --ink:#F1EDE4; --muted:#B5BFCF; --line:#2A4066;
+    --navy:#06101F; --on-navy:#F1EDE4; --on-navy-muted:#B5BFCF; --gold:#E2C07A; --gold-soft:#D2AE66;
+    --teamA:#8DBAEE; --teamA-soft:#1A3558; --teamB:#E2B65C; --teamB-soft:#3A2F17;
+    --good:#6FD39D; --good-soft:#163A2A; --bad:#F08A7E; --bad-soft:#40201C;
+    --focus:#8DBAEE; --shadow:rgba(0,0,0,.5); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1A30; --surface:#132745; --ink:#F1EDE4; --muted:#B5BFCF; --line:#2A4066;
+  --navy:#06101F; --on-navy:#F1EDE4; --on-navy-muted:#B5BFCF; --gold:#E2C07A; --gold-soft:#D2AE66;
+  --teamA:#8DBAEE; --teamA-soft:#1A3558; --teamB:#E2B65C; --teamB-soft:#3A2F17;
+  --good:#6FD39D; --good-soft:#163A2A; --bad:#F08A7E; --bad-soft:#40201C;
+  --focus:#8DBAEE; --shadow:rgba(0,0,0,.5); color-scheme: dark;
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Nunito Sans',Arial,Helvetica,sans-serif;line-height:1.4}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+input:focus,select:focus,textarea:focus{border-color:var(--focus);outline:none}
+button:focus-visible,.word:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:'Domine',Georgia,serif;line-height:1.15}
+
+.btn{padding:12px 20px;border-radius:12px;font-weight:800;font-size:clamp(15px,1.4vw,19px);border:2px solid var(--line);background:var(--surface);white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.big{padding:16px 30px;font-size:22px}
+.btn.small{padding:7px 12px;font-size:15px;border-radius:9px}
+.btn.teamA{background:var(--teamA-soft);border-color:var(--teamA);color:var(--teamA)}
+.btn.teamB{background:var(--teamB-soft);border-color:var(--teamB);color:var(--teamB)}
+.btn.good{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.btn.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- Start page ---------- */
+.page{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,4vw,40px) 48px}
+.hero{background:var(--navy);color:var(--on-navy)}
+.hero .page{padding-bottom:clamp(24px,4vw,44px);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+.hero h1{font-size:clamp(56px,9vw,120px);font-weight:700;letter-spacing:-1px}
+.hero h1 .fly{display:inline-block;color:var(--gold-soft);transform-origin:60% 70%}
+.hero p{font-size:clamp(18px,2vw,24px);color:var(--on-navy-muted);max-width:40ch}
+.hero .course{font-size:16px;color:var(--gold-soft);font-weight:700;margin-bottom:6px}
+.howto{display:grid;grid-template-columns:1.1fr 2fr;gap:clamp(20px,3vw,40px);margin-top:8px}
+.howto h2{font-size:clamp(26px,3vw,36px);margin-bottom:14px}
+.steps{list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;font-size:clamp(18px,1.8vw,22px)}
+.steps li{display:flex;gap:14px;align-items:flex-start}
+.steps .n{flex:none;width:36px;height:36px;border-radius:50%;background:var(--gold-soft);color:#0E2340;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:18px}
+.roundcards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rc{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:22px}
+.rc h3{font-size:22px;margin-bottom:8px}
+.rc .num{font-family:'Domine',Georgia,serif;font-size:44px;font-weight:700;color:var(--gold);line-height:1}
+.rc p{font-size:18px}
+.rc .pts{margin-top:10px;font-weight:800;color:var(--good);font-size:16px}
+.setup{margin-top:clamp(24px,3vw,36px);background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:22px;display:flex;flex-wrap:wrap;gap:16px 24px;align-items:end}
+.field{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:16px}
+.field input{font-size:20px;width:min(260px,70vw)}
+.setup .go{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap}
+.hint{font-size:15px;color:var(--muted);margin-top:14px}
+kbd{font-family:inherit;font-weight:800;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;background:var(--bg);font-size:.9em}
+
+/* ---------- Editor ---------- */
+.edhead{display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px}
+.edhead h1{font-size:clamp(30px,4vw,44px)}
+.edgrid{display:grid;grid-template-columns:1fr 1.3fr;gap:24px;align-items:start}
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:20px}
+.panel h2{font-size:24px;margin-bottom:4px}
+.panel .lead{color:var(--muted);font-size:16px;margin-bottom:14px}
+.tablewrap{overflow-x:auto}
+table.ed{width:100%;border-collapse:collapse}
+table.ed th{text-align:left;font-size:14px;color:var(--muted);font-weight:800;padding:0 6px 6px}
+table.ed td{padding:4px 6px;vertical-align:middle}
+table.ed td.idx{color:var(--muted);font-weight:800;width:28px;text-align:right}
+table.ed input,table.ed select{width:100%;font-size:18px;padding:8px 10px}
+table.ed .x{width:40px;height:40px;border-radius:10px;font-size:22px;font-weight:800;color:var(--muted)}
+table.ed .x:hover{background:var(--bad-soft);color:var(--bad)}
+table.ed tr.warn input,table.ed tr.warn select{border-color:var(--bad)}
+.edactions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.msg{margin-top:12px;font-size:15px;font-weight:700}
+.msg.bad{color:var(--bad)} .msg.ok{color:var(--good)}
+.paste{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.paste textarea{min-height:140px;font-size:16px;resize:vertical}
+details summary{cursor:pointer;font-weight:800;margin-top:14px}
+
+/* ---------- Game ---------- */
+#viewGame{height:100%;display:flex;flex-direction:column}
+.top{background:var(--navy);color:var(--on-navy);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;padding:12px clamp(12px,3vw,32px)}
+.team{display:flex;align-items:center;gap:14px;min-width:0}
+.team.b{justify-content:flex-end}
+.team-name{font-family:'Domine',Georgia,serif;font-size:clamp(20px,2.4vw,32px);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team.a .team-name{color:#9CC3F0}
+.team.b .team-name{color:var(--gold-soft)}
+.score{font-family:'Domine',Georgia,serif;font-size:clamp(44px,6vw,80px);font-weight:700;line-height:1;min-width:1.6ch;text-align:center;font-variant-numeric:tabular-nums}
+.score.bump{animation:bump .5s ease}
+@keyframes bump{40%{transform:scale(1.35)}}
+.mid{display:flex;flex-direction:column;align-items:center;gap:6px}
+.roundlabel{font-weight:800;font-size:clamp(16px,1.6vw,22px);color:var(--gold-soft);white-space:nowrap}
+.clock{font-family:'Domine',Georgia,serif;font-size:clamp(24px,2.6vw,36px);font-variant-numeric:tabular-nums}
+.clock.out{color:#F08A7E}
+.clock.paused{opacity:.6}
+.tbtn{position:absolute;right:clamp(8px,1.5vw,16px);top:calc(env(safe-area-inset-top,0px) + 8px);padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.3);color:var(--on-navy-muted);font-weight:700;font-size:14px;background:var(--navy)}
+.tbtn:hover{background:rgba(255,255,255,.12)}
+main.game{flex:1;display:flex;flex-direction:column;padding:clamp(12px,2.2vw,26px) clamp(12px,3vw,32px);gap:clamp(10px,1.6vw,18px);min-height:0}
+.board{flex:1;display:grid;grid-auto-rows:1fr;gap:clamp(8px,1.4vw,16px);min-height:300px}
+.word{position:relative;background:var(--surface);border:3px solid var(--line);border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;font-weight:800;font-size:var(--wsize,clamp(26px,5vw,72px));line-height:1.05;color:var(--ink);overflow:hidden;transition:border-color .15s,background .15s,opacity .2s;user-select:none;overflow-wrap:anywhere}
+.word:hover{border-color:var(--gold-soft)}
+.word.picked{border-color:var(--ink);background:var(--bg)}
+.word.right{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.word.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.word.dim{opacity:.3}
+.word .splat{position:absolute;inset:0;margin:auto;width:40%;aspect-ratio:1;border-radius:50%;border:6px solid currentColor;opacity:0;pointer-events:none}
+.word.hit{animation:squish .35s ease}
+.word.hit .splat{animation:splat .5s ease-out}
+@keyframes squish{30%{transform:scale(.9,.84)}70%{transform:scale(1.03)}}
+@keyframes splat{0%{opacity:.7;transform:scale(.2)}100%{opacity:0;transform:scale(2.2)}}
+.bar{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:14px 18px;display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between}
+.prompt{font-size:clamp(18px,2vw,28px);font-weight:700;line-height:1.3;flex:1 1 420px}
+.prompt .sub{display:block;font-size:clamp(15px,1.4vw,19px);font-weight:600;color:var(--muted);margin-top:2px}
+.prompt b.hl{color:var(--good)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+
+/* ---------- Teacher drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(6,16,31,.35);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(400px,100vw);background:var(--surface);border-left:2px solid var(--line);box-shadow:-12px 0 40px var(--shadow);z-index:21;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:2px solid var(--line)}
+.drawer header h2{font-size:24px}
+.drawer .body{overflow-y:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:22px}
+.dsec h3{font-family:'Nunito Sans',Arial,sans-serif;font-size:15px;font-weight:800;color:var(--gold);margin-bottom:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:8px 12px;border-radius:10px;border:2px solid var(--line);font-weight:800;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.callbox{border:2px dashed var(--line);border-radius:12px;padding:12px 14px;min-height:54px;font-size:20px;font-weight:800;display:flex;align-items:center}
+.callbox.hiddenText{color:var(--muted);font-size:16px;font-weight:700}
+.callmeta{font-size:14px;color:var(--muted);margin-top:6px}
+.scoreadj{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;font-weight:800}
+.scoreadj .v{min-width:2.5ch;text-align:center;font-family:'Domine',Georgia,serif;font-size:22px}
+.mins{display:flex;gap:10px;flex-wrap:wrap}
+.mins label{display:flex;flex-direction:column;font-size:14px;font-weight:700;gap:4px}
+.mins input{width:78px;font-size:17px;padding:6px 8px}
+.keylist{font-size:14px;color:var(--muted);display:grid;grid-template-columns:auto 1fr;gap:4px 10px}
+
+@media (max-width:820px){
+  .hero .page,.howto,.edgrid{grid-template-columns:1fr}
+  .roundcards{grid-template-columns:1fr}
+  .top{grid-template-columns:1fr 1fr;padding-top:44px}
+  .mid{grid-column:1/-1;grid-row:2}
+}
+@media (prefers-reduced-motion:reduce){
+  .word.hit,.word.hit .splat,.score.bump{animation:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= START ================= -->
+<div id="viewStart">
+  <section class="hero">
+    <div class="page">
+      <div>
+        <h1>Swat It<span class="fly">!</span></h1>
+        <p>A team game for listening and speaking. Listen closely, speak clearly, and swat the word you hear.</p>
+      </div>
+    </div>
+  </section>
+  <div class="page">
+    <div class="howto">
+      <div>
+        <h2>How to play</h2>
+        <ol class="steps">
+          <li><span class="n">1</span><span>Make two teams.</span></li>
+          <li><span class="n">2</span><span>One player from each team stands at the board with a swatter.</span></li>
+          <li><span class="n">3</span><span>Listen. Swat the word you hear. Be fast!</span></li>
+          <li><span class="n">4</span><span>Give the swatter to the next player on your team.</span></li>
+        </ol>
+      </div>
+      <div class="roundcards">
+        <div class="rc"><p class="num">1</p><h3>Listen</h3><p>Your teacher says a word. Swat it first.</p><p class="pts">Right word: 1 point. Wrong word: the other team gets the point.</p></div>
+        <div class="rc"><p class="num">2</p><h3>You call it</h3><p>Choose a word and say it. The other team swats. Show your word.</p><p class="pts">If it matches: both teams get 1 point.</p></div>
+        <div class="rc"><p class="num">3</p><h3>Sentences</h3><p>Your teacher says a sentence two times. Swat the word you hear in it.</p><p class="pts">Right word: 1 point.</p></div>
+      </div>
+    </div>
+    <div class="setup">
+      <label class="field">Team 1 name<input id="inA" maxlength="20" value="Team A"></label>
+      <label class="field">Team 2 name<input id="inB" maxlength="20" value="Team B"></label>
+      <div class="go">
+        <button class="btn" id="toEdit">Edit word list</button>
+        <button class="btn primary big" id="startGame">Start game</button>
+      </div>
+    </div>
+    <p class="hint" id="startInfo"></p>
+    <p class="hint">Teacher: open the teacher controls in the game with the <b>Teacher</b> button or press <kbd>C</kbd>.</p>
+  </div>
+</div>
+
+<!-- ================= EDITOR ================= -->
+<div id="viewEdit" hidden>
+  <div class="page">
+    <div class="edhead">
+      <h1>Word list</h1>
+      <div class="row">
+        <button class="btn" id="restore">Restore sample list</button>
+        <button class="btn primary" id="editDone">Done</button>
+      </div>
+    </div>
+    <div class="edgrid">
+      <section class="panel">
+        <h2>Word pairs</h2>
+        <p class="lead">Each pair goes on the board. Round 1 calls one word; students hear the difference. 2 to 18 pairs.</p>
+        <div class="tablewrap">
+          <table class="ed" id="pairTable">
+            <thead><tr><th></th><th>Word 1</th><th>Word 2</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="edactions"><button class="btn small" id="addPair">Add pair</button></div>
+        <details>
+          <summary>Paste a list instead</summary>
+          <div class="paste">
+            <label for="pasteBox" style="font-size:15px;color:var(--muted)">One pair per line, separated by a comma or a slash: <i>leave, live</i></label>
+            <textarea id="pasteBox" spellcheck="false"></textarea>
+            <div class="row"><button class="btn small" id="pasteGo">Replace pairs with this list</button></div>
+          </div>
+        </details>
+        <p class="msg" id="pairMsg" aria-live="polite"></p>
+      </section>
+      <section class="panel">
+        <h2>Round 3 sentences</h2>
+        <p class="lead">Write a sentence, then choose the board word students should swat.</p>
+        <div class="tablewrap">
+          <table class="ed" id="sentTable">
+            <thead><tr><th></th><th>Sentence</th><th style="width:34%">Swat word</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="edactions"><button class="btn small" id="addSent">Add sentence</button></div>
+        <p class="msg" id="sentMsg" aria-live="polite"></p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GAME ================= -->
+<div id="viewGame" hidden>
+  <header class="top" style="position:relative">
+    <div class="team a"><span class="team-name" id="nameA">Team A</span><span class="score" id="scoreA" aria-live="polite">0</span></div>
+    <div class="mid"><span class="roundlabel" id="roundLabel">Round 1 · Listen</span><span class="clock" id="clock">6:00</span></div>
+    <div class="team b"><span class="score" id="scoreB" aria-live="polite">0</span><span class="team-name" id="nameB">Team B</span></div>
+    <button class="tbtn" id="openT" aria-haspopup="dialog">Teacher</button>
+  </header>
+  <main class="game">
+    <div class="board" id="board" aria-label="Swat board"></div>
+    <section class="bar" aria-live="polite">
+      <p class="prompt" id="prompt"></p>
+      <div class="actions" id="actions"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= TEACHER DRAWER ================= -->
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-label="Teacher controls" hidden>
+  <header><h2>Teacher controls</h2><button class="btn small" id="closeT">Close</button></header>
+  <div class="body">
+    <div class="dsec">
+      <h3>Next call</h3>
+      <div class="callbox hiddenText" id="callBox">Hidden from the class</div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn small" id="peek">Hold to show</button>
+        <button class="btn small" id="skip">Skip this call</button>
+      </div>
+      <p class="callmeta" id="callMeta"></p>
+    </div>
+    <div class="dsec">
+      <h3>Round</h3>
+      <div class="seg" id="roundSeg">
+        <button data-round="1" aria-pressed="true">1 · Listen</button>
+        <button data-round="2" aria-pressed="false">2 · You call it</button>
+        <button data-round="3" aria-pressed="false">3 · Sentences</button>
+      </div>
+    </div>
+    <div class="dsec">
+      <h3>Timer</h3>
+      <div class="row">
+        <button class="btn small" id="timerGo">Start</button>
+        <button class="btn small" id="timerReset">Reset</button>
+        <button class="btn small" id="timerPlus">+1 min</button>
+      </div>
+      <div class="mins" style="margin-top:10px">
+        <label>Round 1 (min)<input type="number" min="1" max="60" id="min1"></label>
+        <label>Round 2 (min)<input type="number" min="1" max="60" id="min2"></label>
+        <label>Round 3 (min)<input type="number" min="1" max="60" id="min3"></label>
+      </div>
+    </div>
+    <div class="dsec">
+      <h3>Score</h3>
+      <div class="scoreadj">
+        <span id="adjNameA">Team A</span><button class="btn small" data-adj="A" data-d="-1" aria-label="Take a point from Team A">−</button><span class="v" id="adjA">0</span><button class="btn small" data-adj="A" data-d="1" aria-label="Add a point to Team A">+</button>
+        <span id="adjNameB">Team B</span><button class="btn small" data-adj="B" data-d="-1" aria-label="Take a point from Team B">−</button><span class="v" id="adjB">0</span><button class="btn small" data-adj="B" data-d="1" aria-label="Add a point to Team B">+</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn small" id="undo">Undo last point</button>
+        <button class="btn small" id="zero">Reset scores</button>
+      </div>
+    </div>
+    <div class="dsec">
+      <h3>Board</h3>
+      <div class="row">
+        <button class="btn small" id="shuffle">Shuffle board</button>
+        <button class="btn small" id="editFromGame">Edit word list</button>
+      </div>
+    </div>
+    <div class="dsec">
+      <h3>Screen</h3>
+      <div class="row">
+        <button class="btn small" id="sound">Sound: on</button>
+        <button class="btn small" id="full">Full screen</button>
+        <button class="btn small" id="toStart">Instructions page</button>
+      </div>
+    </div>
+    <div class="dsec">
+      <h3>Keyboard</h3>
+      <div class="keylist">
+        <kbd>A</kbd><span>first team swatted</span>
+        <kbd>B</kbd><span>second team swatted</span>
+        <kbd>Y</kbd><span>Round 2: it matches</span>
+        <kbd>N</kbd><span>Round 2: no match</span>
+        <kbd>Space</kbd><span>next call</span>
+        <kbd>T</kbd><span>hold to show the call</span>
+        <kbd>P</kbd><span>start or pause the timer</span>
+        <kbd>C</kbd><span>open or close these controls</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script>
+(function(){
+  "use strict";
+  var STORE="swatit-v2";
+  var DEFAULTS={
+    pairs:[["B","V"],["G","J"],["E","I"],["work","works"],["watch","watches"],["need","knee"],["form","four"],["leave","live"],["he’s","his"],["seat","sit"]],
+    sentences:[
+      {s:"I live near the station.",w:"live"},{s:"He’s in the office.",w:"he’s"},{s:"Take a seat, please.",w:"seat"},
+      {s:"She needs a form.",w:"form"},{s:"He watches the door at night.",w:"watches"},{s:"Write the letter G.",w:"G"},
+      {s:"His office is in the back.",w:"his"},{s:"Please leave the door open.",w:"leave"},{s:"Write the letter V.",w:"V"},
+      {s:"She works at the hospital.",w:"works"},{s:"I need help, please.",w:"need"},{s:"Sit here, please.",w:"sit"},
+      {s:"He has four kids.",w:"four"},{s:"I work at night.",w:"work"}],
+    mins:{1:6,2:8,3:6},
+    names:{A:"Team A",B:"Team B"}
+  };
+  var ROUND_NAMES={1:"Listen",2:"You call it",3:"Sentences"};
+
+  function clone(o){return JSON.parse(JSON.stringify(o));}
+  function load(){
+    try{var raw=localStorage.getItem(STORE);if(raw){var d=JSON.parse(raw);if(d&&d.pairs&&d.sentences)return Object.assign(clone(DEFAULTS),d);}}catch(e){}
+    return clone(DEFAULTS);
+  }
+  var cfg=load();
+  function save(){try{localStorage.setItem(STORE,JSON.stringify(cfg));}catch(e){}}
+
+  var $=function(id){return document.getElementById(id);};
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function norm(w){return String(w).trim().toLowerCase().replace(/['‘’`]/g,"’");}
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+  /* ---------- derived word data ---------- */
+  function validPairs(){return cfg.pairs.filter(function(p){return p[0].trim()&&p[1].trim();}).map(function(p){return [p[0].trim(),p[1].trim()];});}
+  function words(){var out=[];validPairs().forEach(function(p){out.push(p[0],p[1]);});return out;}
+  function findWord(w){var k=norm(w),ws=words();for(var i=0;i<ws.length;i++)if(norm(ws[i])===k)return ws[i];return null;}
+  function pairOf(w){var k=norm(w),ps=validPairs();for(var i=0;i<ps.length;i++){if(norm(ps[i][0])===k)return ps[i][1];if(norm(ps[i][1])===k)return ps[i][0];}return "";}
+  function pairIndex(w){var k=norm(w),ps=validPairs();for(var i=0;i<ps.length;i++){if(norm(ps[i][0])===k||norm(ps[i][1])===k)return i;}return -1;}
+  function validSentences(){return cfg.sentences.filter(function(s){return s.s.trim()&&findWord(s.w);});}
+
+  /* ---------- views ---------- */
+  var view="start";
+  function show(v){
+    view=v;
+    $("viewStart").hidden=v!=="start"; $("viewEdit").hidden=v!=="edit"; $("viewGame").hidden=v!=="game";
+    if(v!=="game")closeDrawer();
+    if(v==="start")renderStartInfo();
+    if(v==="edit")renderEditor();
+    window.scrollTo(0,0);
+  }
+  function renderStartInfo(){
+    $("inA").value=cfg.names.A; $("inB").value=cfg.names.B;
+    var n=validPairs().length, s=validSentences().length;
+    $("startInfo").textContent="Word list: "+n+" pairs ("+(n*2)+" words on the board) and "+s+" sentences for Round 3.";
+    $("startGame").disabled=n<2;
+  }
+  function readNames(){
+    cfg.names.A=$("inA").value.trim()||"Team A"; cfg.names.B=$("inB").value.trim()||"Team B"; save();
+  }
+  $("toEdit").addEventListener("click",function(){readNames();returnTo="start";show("edit");});
+  $("startGame").addEventListener("click",function(){readNames();startGame(true);});
+
+  /* ---------- editor ---------- */
+  var returnTo="start";
+  function renderEditor(){renderPairs();renderSents();}
+  function renderPairs(){
+    var tb=$("pairTable").tBodies[0]; tb.innerHTML="";
+    var seen={},dups=[];
+    cfg.pairs.forEach(function(p,i){
+      var tr=document.createElement("tr");
+      [p[0],p[1]].forEach(function(w){var k=norm(w);if(k){if(seen[k])dups.push(w);seen[k]=1;}});
+      tr.innerHTML='<td class="idx">'+(i+1)+'</td><td><input aria-label="Pair '+(i+1)+' word 1"></td><td><input aria-label="Pair '+(i+1)+' word 2"></td><td><button class="x" aria-label="Remove pair '+(i+1)+'">×</button></td>';
+      var ins=tr.querySelectorAll("input");
+      ins[0].value=p[0]; ins[1].value=p[1];
+      ins.forEach(function(inp,j){inp.addEventListener("input",function(){cfg.pairs[i][j]=inp.value;save();pairCheck();refreshTargets();});});
+      tr.querySelector(".x").addEventListener("click",function(){cfg.pairs.splice(i,1);save();renderEditor();});
+      tb.appendChild(tr);
+    });
+    $("addPair").disabled=cfg.pairs.length>=18;
+    pairCheck();
+  }
+  function pairCheck(){
+    var rows=$("pairTable").tBodies[0].rows, seen={}, dup=false, half=0;
+    cfg.pairs.forEach(function(p,i){
+      var a=norm(p[0]),b=norm(p[1]),bad=false;
+      if((a&&!b)||(!a&&b)){bad=true;half++;}
+      [a,b].forEach(function(k){if(k){if(seen[k]){bad=true;dup=true;}seen[k]=1;}});
+      if(rows[i])rows[i].classList.toggle("warn",bad);
+    });
+    var n=validPairs().length,m=$("pairMsg");
+    if(n<2){m.className="msg bad";m.textContent="Add at least 2 complete pairs to play.";}
+    else if(dup){m.className="msg bad";m.textContent="A word appears twice. Each word on the board should be different.";}
+    else if(half){m.className="msg bad";m.textContent="A pair is missing a word. Rows with one word are left off the board.";}
+    else{m.className="msg ok";m.textContent=n+" pairs, "+(n*2)+" words on the board. Saved.";}
+  }
+  function targetOptions(sel,cur){
+    var ws=words(), found=findWord(cur);
+    sel.innerHTML='<option value="">Choose a word</option>'+ws.map(function(w){return '<option'+(found===w?' selected':'')+'>'+esc(w)+'</option>';}).join("");
+  }
+  function renderSents(){
+    var tb=$("sentTable").tBodies[0]; tb.innerHTML="";
+    cfg.sentences.forEach(function(s,i){
+      var tr=document.createElement("tr");
+      tr.innerHTML='<td class="idx">'+(i+1)+'</td><td><input aria-label="Sentence '+(i+1)+'"></td><td><select aria-label="Swat word for sentence '+(i+1)+'"></select></td><td><button class="x" aria-label="Remove sentence '+(i+1)+'">×</button></td>';
+      var inp=tr.querySelector("input"), sel=tr.querySelector("select");
+      inp.value=s.s; targetOptions(sel,s.w);
+      inp.addEventListener("input",function(){cfg.sentences[i].s=inp.value;save();sentCheck();});
+      sel.addEventListener("change",function(){cfg.sentences[i].w=sel.value;save();sentCheck();});
+      tr.querySelector(".x").addEventListener("click",function(){cfg.sentences.splice(i,1);save();renderSents();});
+      tb.appendChild(tr);
+    });
+    sentCheck();
+  }
+  function refreshTargets(){
+    var rows=$("sentTable").tBodies[0].rows;
+    cfg.sentences.forEach(function(s,i){if(rows[i])targetOptions(rows[i].querySelector("select"),s.w);});
+    sentCheck();
+  }
+  function sentCheck(){
+    var rows=$("sentTable").tBodies[0].rows, miss=0, notIn=0;
+    cfg.sentences.forEach(function(s,i){
+      var w=findWord(s.w), bad=!w||!s.s.trim();
+      if(w&&s.s.trim()&&!wordRegex(w).test(s.s)){notIn++;}
+      if(bad)miss++;
+      if(rows[i])rows[i].classList.toggle("warn",bad);
+    });
+    var m=$("sentMsg"),n=validSentences().length;
+    if(miss){m.className="msg bad";m.textContent=miss+" sentence"+(miss>1?"s need":" needs")+" a sentence and a board word. "+(miss>1?"They are":"It is")+" skipped in the game.";}
+    else if(notIn){m.className="msg bad";m.textContent="Check: "+notIn+" sentence"+(notIn>1?"s don’t":" doesn’t")+" contain the swat word.";}
+    else{m.className="msg ok";m.textContent=n+" sentences ready. Saved.";}
+  }
+  $("addPair").addEventListener("click",function(){cfg.pairs.push(["",""]);save();renderPairs();var r=$("pairTable").tBodies[0].rows;r[r.length-1].querySelector("input").focus();});
+  $("addSent").addEventListener("click",function(){cfg.sentences.push({s:"",w:""});save();renderSents();var r=$("sentTable").tBodies[0].rows;r[r.length-1].querySelector("input").focus();});
+  $("pasteGo").addEventListener("click",function(){
+    var lines=$("pasteBox").value.split(/\n/).map(function(l){return l.split(/[,\/\t;]|\s+-\s+/).map(function(x){return x.trim();}).filter(Boolean);}).filter(function(p){return p.length>=2;});
+    if(lines.length<2){$("pairMsg").className="msg bad";$("pairMsg").textContent="Paste at least 2 lines, each with two words.";return;}
+    cfg.pairs=lines.slice(0,18).map(function(p){return [p[0],p[1]];});save();$("pasteBox").value="";renderEditor();
+  });
+  $("restore").addEventListener("click",function(){
+    if(!confirm("Replace the word list and sentences with the sample list?"))return;
+    cfg.pairs=clone(DEFAULTS.pairs);cfg.sentences=clone(DEFAULTS.sentences);save();renderEditor();
+  });
+  $("editDone").addEventListener("click",function(){
+    if(returnTo==="game"){
+      if(validPairs().length<2){pairCheck();return;}
+      state.layout=null; newLayout(); renderBoard(); buildQueue(); state.phase="call"; render(); show("game");
+    }else show("start");
+  });
+
+  /* ---------- game state ---------- */
+  var state={round:1,scores:{A:0,B:0},history:[],layout:null,queue:[],qi:0,picked:null,phase:"call",caller:"A",sound:true};
+  var boardEl=$("board"), promptEl=$("prompt"), actionsEl=$("actions");
+
+  function cols(n){var narrow=window.matchMedia("(max-width:820px)").matches;if(narrow)return n<=12?3:4;return n<=8?4:n<=20?5:n<=30?6:7;}
+  function goodLayout(l,c){
+    for(var i=0;i<l.length;i++){
+      var p=pairIndex(l[i]);
+      if(i%c!==c-1&&i+1<l.length&&pairIndex(l[i+1])===p)return false;
+      if(i+c<l.length&&pairIndex(l[i+c])===p)return false;
+    }return true;
+  }
+  function newLayout(){var ws=words(),c=cols(ws.length),l,n=0;do{l=shuffle(ws);n++;}while(!goodLayout(l,c)&&n<800);state.layout=l;}
+  function buildQueue(){
+    if(state.round===1){
+      var first=shuffle(validPairs().map(function(p){return p[Math.random()<.5?0:1];}));
+      state.queue=first.concat(shuffle(words()));
+    }else if(state.round===3){state.queue=validSentences().map(function(s){return {s:s.s,w:findWord(s.w)};});}
+    else state.queue=[];
+    state.qi=0;
+  }
+  function currentCall(){return state.queue.length?state.queue[state.qi%state.queue.length]:null;}
+  function callWord(){var c=currentCall();return c&&typeof c==="object"?c.w:c;}
+  function teamName(t){return cfg.names[t]||("Team "+t);}
+
+  /* ---------- audio ---------- */
+  var ctx=null;
+  function tone(f,d,type,v,when){
+    if(!state.sound)return;
+    try{ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();
+      var t=ctx.currentTime+(when||0),o=ctx.createOscillator(),g=ctx.createGain();
+      o.type=type||"sine";o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(v||.2,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
+      o.connect(g);g.connect(ctx.destination);o.start(t);o.stop(t+d);}catch(e){}
+  }
+  function sSwat(){tone(140,.12,"square",.15);}
+  function sGood(){tone(660,.14,"sine",.2);tone(880,.22,"sine",.2,.12);}
+  function sBad(){tone(220,.25,"sawtooth",.12);tone(170,.3,"sawtooth",.1,.15);}
+  function sEnd(){tone(523,.25,"triangle",.25);tone(659,.25,"triangle",.25,.25);tone(784,.45,"triangle",.25,.5);}
+
+  /* ---------- render game ---------- */
+  function renderBoard(){
+    var ws=state.layout, c=cols(ws.length);
+    boardEl.style.gridTemplateColumns="repeat("+c+",1fr)";
+    var longest=ws.reduce(function(m,w){return Math.max(m,w.length);},1);
+    var base=Math.min(72,Math.max(24,Math.floor(560/(c*Math.max(3,longest)*0.62))));
+    boardEl.style.setProperty("--wsize","clamp(22px,"+(base/14).toFixed(2)+"vw,"+base+"px)");
+    boardEl.innerHTML="";
+    ws.forEach(function(w){
+      var b=document.createElement("button");b.className="word";b.type="button";b.dataset.k=norm(w);
+      b.setAttribute("aria-label","Swatted: "+w);
+      b.innerHTML='<span class="splat" aria-hidden="true"></span>'+esc(w);
+      b.addEventListener("click",function(){pick(w,b);});
+      boardEl.appendChild(b);
+    });
+  }
+  function cardFor(w){return boardEl.querySelector('.word[data-k="'+norm(w).replace(/"/g,'\\"')+'"]');}
+  function clearMarks(){boardEl.querySelectorAll(".word").forEach(function(c){c.classList.remove("picked","right","wrong","dim","hit");});}
+  function setScores(){
+    ["A","B"].forEach(function(t){$("score"+t).textContent=state.scores[t];$("adj"+t).textContent=state.scores[t];$("name"+t).textContent=teamName(t);$("adjName"+t).textContent=teamName(t);});
+  }
+  function snapshot(){state.history.push({A:state.scores.A,B:state.scores.B});if(state.history.length>50)state.history.shift();}
+  function bump(t,d){
+    state.scores[t]=Math.max(0,state.scores[t]+d);setScores();
+    var el=$("score"+t);el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump");
+  }
+  function btn(label,cls,fn){var b=document.createElement("button");b.className="btn "+(cls||"");b.textContent=label;b.addEventListener("click",fn);return b;}
+  function setActions(list){actionsEl.innerHTML="";list.forEach(function(b){actionsEl.appendChild(b);});}
+  function setPrompt(main,sub){promptEl.innerHTML=main+(sub?'<span class="sub">'+sub+'</span>':"");}
+  function setRoundLabel(){$("roundLabel").textContent="Round "+state.round+" · "+ROUND_NAMES[state.round];
+    document.querySelectorAll("#roundSeg [data-round]").forEach(function(b){b.setAttribute("aria-pressed",String(+b.dataset.round===state.round));});}
+
+  function render(){
+    setRoundLabel(); updateCallBox();
+    if(state.phase!=="call")return;
+    clearMarks();
+    if(state.round===2){
+      var c=teamName(state.caller),o=teamName(state.caller==="A"?"B":"A");
+      setPrompt("Caller from "+esc(c)+": choose a word and say it.","A player from "+esc(o)+" swats. Then click the word they swatted.");
+    }else if(state.round===1){
+      setPrompt("Listen! Swat the word you hear.","Teacher: say the word, then click the word that got swatted first.");
+    }else if(!state.queue.length){
+      setPrompt("No sentences yet.","Teacher: add sentences in the word list, or play Round 1 or 2.");
+    }else{
+      setPrompt("Listen to the sentence. Swat the word you hear.","Teacher: say the sentence two times, then click the word that got swatted.");
+    }
+    setActions([]);
+  }
+
+  function pick(w,el){
+    if(state.round===3&&!state.queue.length)return;
+    clearMarks();state.picked=w;el.classList.add("picked","hit");sSwat();
+    if(state.round===2){
+      state.phase="match";
+      setPrompt("Swatted: <b>"+esc(w)+"</b>. Is this the caller’s word?","Caller, show your word.");
+      setActions([btn("Yes, it matches","good",function(){judgeMatch(true);}),btn("No","bad",function(){judgeMatch(false);})]);
+    }else{
+      state.phase="who";
+      setPrompt("Swatted: <b>"+esc(w)+"</b>. Who swatted it?","");
+      setActions([btn(teamName("A"),"teamA",function(){judge("A");}),btn(teamName("B"),"teamB",function(){judge("B");}),btn("Cancel","",function(){state.phase="call";render();})]);
+    }
+  }
+  function wordRegex(w){
+    var e=String(w).replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/[’']/g,"['’]");
+    return new RegExp("(^|[^A-Za-z’'])("+e+")(?![A-Za-z])","i");
+  }
+  function judge(team){
+    if(state.phase!=="who")return;
+    var target=callWord(),ok=norm(state.picked)===norm(target),other=team==="A"?"B":"A";
+    var pe=cardFor(state.picked),te=cardFor(target),pair=pairOf(target),pre=cardFor(pair);
+    boardEl.querySelectorAll(".word").forEach(function(c){c.classList.add("dim");});
+    [pe,te,pre].forEach(function(c){if(c)c.classList.remove("dim","picked");});
+    snapshot();
+    if(ok){pe.classList.add("right");bump(team,1);sGood();}
+    else{pe.classList.add("wrong");if(te)te.classList.add("right");bump(other,1);sBad();}
+    var who=ok?"Yes! Point to "+esc(teamName(team))+".":"Not quite. Point to "+esc(teamName(other))+".";
+    var detail;
+    if(state.round===3){var c=currentCall();detail="“"+esc(c.s).replace(wordRegex(esc(c.w)),'$1<b class="hl">$2</b>')+"”  Everyone, say it together.";}
+    else detail='It was <b class="hl">'+esc(target)+"</b>"+(pair?", not "+esc(pair)+". Everyone, say both: "+esc(target)+" · "+esc(pair)+".":".");
+    setPrompt(who,detail);state.phase="result";
+    setActions([btn("Next","primary",next)]);
+  }
+  function judgeMatch(ok){
+    if(state.phase!=="match")return;
+    var el=cardFor(state.picked);el.classList.remove("picked");
+    if(ok){
+      el.classList.add("right");snapshot();bump("A",1);bump("B",1);sGood();
+      setPrompt("Clear speaking and good listening: 1 point for both teams!","Next caller: "+esc(teamName(state.caller==="A"?"B":"A"))+".");
+      state.phase="result";setActions([btn("Next","primary",next)]);
+    }else{
+      el.classList.add("wrong");sBad();
+      var pair=pairOf(state.picked);
+      setPrompt("No match. Caller, try again.",(pair?"Was your word "+esc(pair)+"? ":"")+"Listen to your teacher, then say it again.");
+      state.phase="call";
+      setActions([btn("Try again","",function(){render();}),btn("Next caller","",next)]);
+    }
+  }
+  function next(){
+    if(state.round===2)state.caller=state.caller==="A"?"B":"A";else state.qi++;
+    state.phase="call";state.picked=null;render();
+  }
+
+  /* ---------- teacher drawer ---------- */
+  var peeking=false;
+  function callText(){
+    if(state.round===2)return "Round 2: students choose the word";
+    var c=currentCall();if(!c)return "No calls yet";return typeof c==="object"?c.s:c;
+  }
+  function updateCallBox(){
+    var box=$("callBox");
+    if(peeking||state.round===2){box.textContent=callText();box.classList.remove("hiddenText");}
+    else{box.textContent="Hidden from the class";box.classList.add("hiddenText");}
+    var meta=$("callMeta");
+    if(state.round===2)meta.textContent="Caller now: "+teamName(state.caller)+".";
+    else if(state.queue.length){var c=currentCall();meta.textContent="Call "+(state.qi%state.queue.length+1)+" of "+state.queue.length+(state.round===3?" · swat word: "+c.w:"")+(peeking?"":"")+".";if(!peeking&&state.round===3)meta.textContent="Call "+(state.qi%state.queue.length+1)+" of "+state.queue.length+".";}
+    else meta.textContent="";
+  }
+  function peekOn(){if(peeking)return;peeking=true;updateCallBox();}
+  function peekOff(){if(!peeking)return;peeking=false;updateCallBox();}
+  var pk=$("peek");
+  pk.addEventListener("pointerdown",function(e){e.preventDefault();peekOn();});
+  ["pointerup","pointerleave","pointercancel","blur"].forEach(function(ev){pk.addEventListener(ev,peekOff);});
+  pk.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();peekOn();}});
+  pk.addEventListener("keyup",peekOff);
+  $("skip").addEventListener("click",function(){next();});
+
+  function openDrawer(){$("drawer").hidden=false;$("scrim").hidden=false;$("closeT").focus();}
+  function closeDrawer(){$("drawer").hidden=true;$("scrim").hidden=true;peekOff();}
+  $("openT").addEventListener("click",openDrawer);
+  $("closeT").addEventListener("click",function(){closeDrawer();$("openT").focus();});
+  $("scrim").addEventListener("click",closeDrawer);
+
+  function setRound(n){state.round=n;state.phase="call";state.caller="A";buildQueue();resetTimer();render();}
+  document.querySelectorAll("#roundSeg [data-round]").forEach(function(b){b.addEventListener("click",function(){setRound(+b.dataset.round);});});
+  document.querySelectorAll("[data-adj]").forEach(function(b){b.addEventListener("click",function(){snapshot();bump(b.dataset.adj,+b.dataset.d);});});
+  $("undo").addEventListener("click",function(){var h=state.history.pop();if(h){state.scores={A:h.A,B:h.B};setScores();}});
+  $("zero").addEventListener("click",function(){if(!confirm("Set both scores to 0?"))return;snapshot();state.scores={A:0,B:0};setScores();});
+  $("shuffle").addEventListener("click",function(){newLayout();renderBoard();state.phase="call";render();});
+  $("editFromGame").addEventListener("click",function(){stopTimer();returnTo="game";show("edit");});
+  $("toStart").addEventListener("click",function(){stopTimer();show("start");});
+  $("sound").addEventListener("click",function(){state.sound=!state.sound;this.textContent="Sound: "+(state.sound?"on":"off");});
+  $("full").addEventListener("click",function(){
+    try{if(document.fullscreenElement)document.exitFullscreen();else{var p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(p&&p.catch)p.catch(function(){});}}catch(e){}
+  });
+
+  /* ---------- timer ---------- */
+  var timer={left:0,running:false,id:null};
+  function fmt(s){var m=Math.floor(s/60),r=s%60;return m+":"+(r<10?"0":"")+r;}
+  function showClock(){var c=$("clock");c.textContent=fmt(timer.left);c.classList.toggle("out",timer.left===0);c.classList.toggle("paused",!timer.running&&timer.left>0);$("timerGo").textContent=timer.running?"Pause":(timer.left?"Start":"Time’s up");}
+  function stopTimer(){clearInterval(timer.id);timer.running=false;showClock();}
+  function startTimer(){if(timer.left===0||timer.running)return;timer.running=true;showClock();
+    timer.id=setInterval(function(){timer.left=Math.max(0,timer.left-1);if(timer.left===0){stopTimer();sEnd();}showClock();},1000);}
+  function resetTimer(){stopTimer();timer.left=(+cfg.mins[state.round]||6)*60;showClock();}
+  $("timerGo").addEventListener("click",function(){timer.running?stopTimer():startTimer();});
+  $("timerReset").addEventListener("click",resetTimer);
+  $("timerPlus").addEventListener("click",function(){timer.left+=60;showClock();});
+  [1,2,3].forEach(function(n){
+    var inp=$("min"+n);inp.value=cfg.mins[n];
+    inp.addEventListener("change",function(){var v=Math.min(60,Math.max(1,Math.round(+inp.value)||cfg.mins[n]));inp.value=v;cfg.mins[n]=v;save();if(state.round===n&&!timer.running)resetTimer();});
+  });
+
+  /* ---------- start ---------- */
+  function startGame(fresh){
+    if(validPairs().length<2){show("edit");return;}
+    if(fresh){state.scores={A:0,B:0};state.history=[];}
+    newLayout();renderBoard();setScores();show("game");setRound(1);
+  }
+
+  /* ---------- keys ---------- */
+  document.addEventListener("keydown",function(e){
+    if(view!=="game")return;
+    var tag=(e.target&&e.target.tagName)||"";
+    if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
+    var k=e.key.toLowerCase();
+    if(k==="c"){e.preventDefault();$("drawer").hidden?openDrawer():closeDrawer();return;}
+    if(k==="escape"){closeDrawer();return;}
+    if(k==="t"){peekOn();return;}
+    if(k==="p"){timer.running?stopTimer():startTimer();return;}
+    if(state.phase==="who"&&(k==="a"||k==="b"))judge(k.toUpperCase());
+    else if(state.phase==="match"&&(k==="y"||k==="n"))judgeMatch(k==="y");
+    else if(k===" "&&state.phase==="result"){e.preventDefault();next();}
+  });
+  document.addEventListener("keyup",function(e){if(e.key.toLowerCase()==="t")peekOff();});
+  window.addEventListener("resize",function(){if(view==="game"&&state.layout){var c=cols(state.layout.length);if(boardEl.style.gridTemplateColumns!=="repeat("+c+", 1fr)")renderBoard();}});
+
+  show("start");
+})();
+</script>
+</body>
+</html>
